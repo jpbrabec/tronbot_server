@@ -1,9 +1,43 @@
 var clientList = require('./sockets.js').clientList;
 var gameList = require('./sockets.js').gameList;
+var Game = require('./game.js');
+var tickNumber = 0;
 
 /**
 * Logic to update all games in progress
 */
 module.exports = function updateTick() {
-    console.log("Server Tick. " + clientList.length + " clients connected, " + gameList.length + " games in progress.");
+    console.log("Server Tick <" + tickNumber + ">. \n" + clientList.length + " clients connected\n" + gameList.length + " games in progress.");
+    pairPlayers();
+};
+
+
+/**
+* Match any pending clients to start new games
+*/
+function pairPlayers() {
+    var pendingList = [];
+    for(var i = 0; i < clientList.length; i++) {
+        if(clientList[i].status === "STATUS_PENDING") {
+            pendingList.push(clientList[i]);
+        }
+    }
+    console.log("There are " + pendingList.length + " clients waiting for games.");
+    while(pendingList.length >= 2) {
+        var newGame = Game([pendingList[0],pendingList[1]]);
+        gameList.push(newGame);
+        pendingList.splice(0,2);
+    }
+}
+
+/**
+* Process all moves in games, then request new moves
+*/
+function updateGames() {
+    for(var i = 0; i < gameList.length; i++) {
+        if(gameList[i].turnCount > 0) {
+            gameList[i].processMoves();
+            gameList[i].requestMoves();
+        }
+    }
 }

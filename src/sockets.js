@@ -1,16 +1,11 @@
 var clientList = [];
 var gameList = [];
 var Client = require('./Client.js');
-var _ = require('underscore');
 
 module.exports.socketHandler = function (socket) {
 	var client = new Client(socket);
 	clientList.push(client);
-
-
-	setTimeout(function(){
-		client.sendMessage("Hey client, whats up?");
-	},3000);
+	client.sendMessage("Hello World");
 
 
 	socket.on('data',function(data) {
@@ -18,15 +13,15 @@ module.exports.socketHandler = function (socket) {
 	});
 
 	socket.on('end',function(){
-		//Remove the client from the list
-		console.log("Client connection ended: " + client.name);
-		clientList.splice(_.findIndex(clientList,{name: client.name}),1);
+		//Client ended the connection. Remove from list.
+		console.log("Client ended connection: " + client.name);
+		client.cleanup();
 	});
 
 	socket.on('error',function(err){
 		console.log("Error: "+err);
-	})
-}
+	});
+};
 
 module.exports.clientList = clientList;
 module.exports.gameList = gameList;
