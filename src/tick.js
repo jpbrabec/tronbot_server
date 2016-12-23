@@ -7,6 +7,7 @@ var tickNumber = 0;
 * Logic to update all games in progress
 */
 module.exports = function updateTick() {
+    tickNumber += 1;
     console.log("Server Tick <" + tickNumber + ">. \n" + clientList.length + " clients connected\n" + gameList.length + " games in progress.");
     pairPlayers();
 };
