@@ -1,6 +1,7 @@
 var _ = require('underscore');
 var Account = require('./account.js');
 var constants = require('./const.js');
+var log = require('./log.js');
 require('dotenv').config();
 
 /**
@@ -20,7 +21,7 @@ module.exports = function Client(socket) {
 		if(self.killed) {
 			return;
 		}
-		console.log("Sending message to socket <"+self.name+">");
+		log.debug("Sending message to socket <"+self.name+">");
 		socket.write(message+";\n");
 	};
 
@@ -29,7 +30,7 @@ module.exports = function Client(socket) {
 		if(self.killed) {
 			return;
 		}
-		console.log("Kicking client <"+self.name+">");
+		log.info("Kicking client <"+self.name+">");
 		if(message) {
 			self.sendMessage(message);
 		}
@@ -43,7 +44,7 @@ module.exports = function Client(socket) {
 		var clientList = require('./sockets.js').clientList;
 		var gameList = require('./sockets.js').gameList;
 
-		console.log("Client  <"+self.name+"> is disconnected. Cleaning up.");
+		log.info("Client  <"+self.name+"> is disconnected. Cleaning up.");
 		clientList.splice(_.findIndex(clientList,{name: self.name}),1);
 
 		//TODO Kill any games this client was involved in
@@ -57,7 +58,7 @@ module.exports = function Client(socket) {
 		}
 		self.authenticated = key;
 		self.state = constants.STATE_PENDING;
-		console.log("Client <" + self.name + "> authed as <" + account.name + ">");
+		log.info("Client <" + self.name + "> authed as <" + account.name + ">");
 		self.name = account.name + "_" + self.name;
 	};
 
@@ -72,7 +73,7 @@ module.exports = function Client(socket) {
 		self.cycleRequests += 1;
 		if(self.cycleRequests > process.env.RATE_LIMIT) {
 			//Block client until next tick
-			console.log("Client <" + self.name + "> passed rate limit.");
+			log.warn("Client <" + self.name + "> passed rate limit.");
 			self.cycleRequests = -1;
 			self.kill(constants.ERR_RATELIMIT);
 			return true;
@@ -89,13 +90,13 @@ module.exports = function Client(socket) {
 			return;
 		}
 
-		console.log("Client < " + self.name + "> sent message: "+data);
+		log.debug("Client < " + self.name + "> sent message: "+data);
 		var clientWords = data.split(" ");
 
 		//Drop messages without authentication
 		if(self.authenticated === null && clientWords[0] !== constants.CCOMMAND_AUTH) {
 			//Client is not authenticated, drop mesasge.
-			console.log("Dropping unauthenticated message from client <" + self.name + ">: " + data);
+			log.debug("Dropping unauthenticated message from client <" + self.name + ">: " + data);
 			return;
 		}
 
@@ -106,7 +107,7 @@ module.exports = function Client(socket) {
 				break;
 
 			default:
-				console.log("Unknown client command: " + clientWords[0]);
+				log.info("Unknown client command: " + clientWords[0]);
 				break;
 		}
 	};
@@ -119,7 +120,7 @@ module.exports = function Client(socket) {
 
 		//Was this key already in use?
 		if(dupIndex >= 0) {
-			console.log("Key re-used. Kicking client <" + clientList[dupIndex].name + ">");
+			log.warn("Key re-used. Kicking client <" + clientList[dupIndex].name + ">");
 			clientList[dupIndex].sendMessage(constants.ERR_AUTH_REUSED);
 			clientList[dupIndex].kill();
 		}
@@ -138,7 +139,7 @@ module.exports = function Client(socket) {
 				return;
 			}
 		}).catch((e) => {
-			console.log("Auth Error: " + e);
+			log.warn("Auth Error: " + e);
 			self.kill(constants.ERR_AUTH_INVALID);
 			return;
 		});

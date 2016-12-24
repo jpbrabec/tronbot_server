@@ -12,6 +12,7 @@
   "dependencies": {
     "dotenv": "^2.0.0",
     "mongoose": "^4.7.4",
+    "simple-node-logger": "^0.93.14",
     "underscore": "^1.8.3"
   }
 }

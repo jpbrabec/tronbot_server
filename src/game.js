@@ -1,3 +1,5 @@
+var log = require('./log.js');
+
 /**
  * Game being played between clients
  */
@@ -8,7 +10,7 @@ module.exports = function Game(players) {
 	self.id = generateID();
 	self.turnCount = 0;
 
-    console.log("Starting game <" + self.id + "> with " + self.playersList.length + " players ");
+    log.info("Starting game <" + self.id + "> with " + self.playersList.length + " players ");
 
 	//Print the board state
 	self.printBoard = function printBoard() {
@@ -17,7 +19,7 @@ module.exports = function Game(players) {
 			for(var x=0; x<5; x++) {
 				row += self.boardState[x][y] + ", ";
 			}
-			console.log(row);
+			log.debug(row);
 		}
 	};
 

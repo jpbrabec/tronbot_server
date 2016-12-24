@@ -1,5 +1,6 @@
 var clientList = require('./sockets.js').clientList;
 var gameList = require('./sockets.js').gameList;
+var log = require('./log.js');
 var Game = require('./game.js');
 var tickNumber = 0;
 var constants = require('./const.js');
@@ -9,7 +10,7 @@ var constants = require('./const.js');
 */
 module.exports = function updateTick() {
     tickNumber += 1;
-    console.log("Server Tick <" + tickNumber + ">. \n" + clientList.length + " clients connected\n" + gameList.length + " games in progress.");
+    log.debug("Server Tick <" + tickNumber + ">. \n" + clientList.length + " clients connected\n" + gameList.length + " games in progress.");
     updateClients();
     pairPlayers();
 };
@@ -25,7 +26,7 @@ function pairPlayers() {
             pendingList.push(clientList[i]);
         }
     }
-    console.log("There are " + pendingList.length + " clients waiting for games.");
+    log.debug("There are " + pendingList.length + " clients waiting for games.");
     while(pendingList.length >= 2) {
         var newGame = Game([pendingList[0],pendingList[1]]);
         gameList.push(newGame);

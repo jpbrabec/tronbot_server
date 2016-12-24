@@ -2,6 +2,7 @@ var clientList = [];
 var gameList = [];
 var Client = require('./Client.js');
 var constants = require('./const.js');
+var log = require('./log.js');
 
 module.exports.socketHandler = function (socket) {
 	var client = new Client(socket);
@@ -11,6 +12,7 @@ module.exports.socketHandler = function (socket) {
 
 	//TODO- Add user auth, kick when multiple accounts with same key
 	//TODO- Add a logging system
+	//TODO- (!) Restructure to tick once each client sends message, with an upper limit
 
 	socket.on('data',function(data) {
 		clientData += data.toString();
@@ -18,6 +20,7 @@ module.exports.socketHandler = function (socket) {
 
 		//Is message longer than allowed
 		if(endIndex > process.env.LENGTH_LIMIT) {
+			log.warn("Client <" + self.name + "> passed rate limit.");
 			client.kill(constants.ERR_LENGTHLIMIT);
 			return;
 		}
@@ -34,12 +37,12 @@ module.exports.socketHandler = function (socket) {
 
 	socket.on('end',function(){
 		//Client ended the connection. Remove from list.
-		console.log("Client ended connection: " + client.name);
+		log.info("Client ended connection: " + client.name);
 		client.cleanup();
 	});
 
 	socket.on('error',function(err){
-		console.log("Socket Error on client < " + client.name + ">: "+err + ".\nEnding Connection.");
+		log.warn("Socket Error on client < " + client.name + ">: "+err + ".\nEnding Connection.");
 		client.kill();
 	});
 };
