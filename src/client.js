@@ -1,6 +1,7 @@
 var _ = require('underscore');
 var Account = require('./account.js');
 var constants = require('./const.js');
+require('dotenv').config();
 
 /**
  * Client connected to the server
@@ -10,18 +11,29 @@ module.exports = function Client(socket) {
 	self.socket = socket;
 	self.name = socket.remoteAddress+":"+socket.remotePort;
 	self.state = constants.STATE_NO_AUTH;
-
 	self.authenticated = null;
+	self.cycleRequests = 0;
+	self.killed = false;
 
 	//Write data to the client
 	self.sendMessage = function sendMessage(message) {
+		if(self.killed) {
+			return;
+		}
 		console.log("Sending message to socket <"+self.name+">");
 		socket.write(message+";\n");
 	};
 
-	//End the connection with the client
-	self.kill = function kill() {
+	//End the connection with the client, sending an optional message
+	self.kill = function kill(message) {
+		if(self.killed) {
+			return;
+		}
 		console.log("Kicking client <"+self.name+">");
+		if(message) {
+			self.sendMessage(message);
+		}
+		self.killed = true;
 		socket.destroy();
 		self.cleanup();
 	};
@@ -40,14 +52,43 @@ module.exports = function Client(socket) {
 
 	//Marks this client as authenticated
 	self.authenticate = function authenticate(account,key) {
+		if(self.killed) {
+			return;
+		}
 		self.authenticated = key;
 		self.state = constants.STATE_PENDING;
 		console.log("Client <" + self.name + "> authed as <" + account.name + ">");
 		self.name = account.name + "_" + self.name;
 	};
 
+	//Checks if client has passed rate limit
+	self.checkLimit = function checkLimit() {
+		//Check rate limiting
+		if(self.cycleRequests < 0) {
+			//Client has already gone over limit
+			return true;
+		}
+
+		self.cycleRequests += 1;
+		if(self.cycleRequests > process.env.RATE_LIMIT) {
+			//Block client until next tick
+			console.log("Client <" + self.name + "> passed rate limit.");
+			self.cycleRequests = -1;
+			self.kill(constants.ERR_RATELIMIT);
+			return true;
+		}
+
+		return false;
+	};
+
 	//Called when client sends data to server
 	self.receiveMessage = function readData(data) {
+
+		//Check rate limit
+		if(self.checkLimit() || self.killed) {
+			return;
+		}
+
 		console.log("Client < " + self.name + "> sent message: "+data);
 		var clientWords = data.split(" ");
 
@@ -60,12 +101,12 @@ module.exports = function Client(socket) {
 
 		switch(clientWords[0]) {
 			//AUTH [key]
-			case constants.CLIENT_COMMAND_AUTH:
+			case constants.CCOMMAND_AUTH:
 				self.handleAuth(clientWords);
 				break;
 
 			default:
-				console.log("Unknown client state: " + self.state);
+				console.log("Unknown client command: " + clientWords[0]);
 				break;
 		}
 	};
@@ -93,14 +134,12 @@ module.exports = function Client(socket) {
 				return;
 			} else {
 				//Auth is invalid
-				self.sendMessage(constants.ERR_AUTH_INVALID);
-				self.kill();
+				self.kill(constants.ERR_AUTH_INVALID);
 				return;
 			}
 		}).catch((e) => {
 			console.log("Auth Error: " + e);
-			self.sendMessage(constants.ERR_AUTH_INVALID);
-			self.kill();
+			self.kill(constants.ERR_AUTH_INVALID);
 			return;
 		});
 	};

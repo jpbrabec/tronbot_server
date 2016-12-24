@@ -2,6 +2,7 @@ var clientList = require('./sockets.js').clientList;
 var gameList = require('./sockets.js').gameList;
 var Game = require('./game.js');
 var tickNumber = 0;
+var constants = require('./const.js');
 
 /**
 * Logic to update all games in progress
@@ -9,6 +10,7 @@ var tickNumber = 0;
 module.exports = function updateTick() {
     tickNumber += 1;
     console.log("Server Tick <" + tickNumber + ">. \n" + clientList.length + " clients connected\n" + gameList.length + " games in progress.");
+    updateClients();
     pairPlayers();
 };
 
@@ -19,7 +21,7 @@ module.exports = function updateTick() {
 function pairPlayers() {
     var pendingList = [];
     for(var i = 0; i < clientList.length; i++) {
-        if(clientList[i].status === "STATUS_PENDING") {
+        if(clientList[i].state === constants.STATE_PENDING) {
             pendingList.push(clientList[i]);
         }
     }
@@ -40,5 +42,14 @@ function updateGames() {
             gameList[i].processMoves();
             gameList[i].requestMoves();
         }
+    }
+}
+
+/**
+* Update logic for all connected clients
+*/
+function updateClients() {
+    for(var i = 0; i < clientList.length; i++) {
+        clientList[i].cycleRequests = 0; //Reset api limit
     }
 }

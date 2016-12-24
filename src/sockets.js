@@ -10,11 +10,17 @@ module.exports.socketHandler = function (socket) {
 	client.sendMessage(constants.SCOMMAND_REQUEST_KEY);
 
 	//TODO- Add user auth, kick when multiple accounts with same key
-	//TODO- Add rate limiting
+	//TODO- Add a logging system
 
 	socket.on('data',function(data) {
 		clientData += data.toString();
 		var endIndex = clientData.indexOf(';');
+
+		//Is message longer than allowed
+		if(endIndex > process.env.LENGTH_LIMIT) {
+			client.kill(constants.ERR_LENGTHLIMIT);
+			return;
+		}
 
 		//Process each message seperately
 		while(endIndex > -1) {
