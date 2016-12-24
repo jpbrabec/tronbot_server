@@ -1,17 +1,18 @@
 var clientList = [];
 var gameList = [];
 var Client = require('./Client.js');
+var constants = require('./const.js');
 
 module.exports.socketHandler = function (socket) {
 	var client = new Client(socket);
 	var clientData = "";
 	clientList.push(client);
-	client.sendMessage("REQUEST_KEY");
+	client.sendMessage(constants.SCOMMAND_REQUEST_KEY);
 
 	//TODO- Add user auth, kick when multiple accounts with same key
+	//TODO- Add rate limiting
 
 	socket.on('data',function(data) {
-		console.log("Raw Data: <" + data + ">");
 		clientData += data.toString();
 		var endIndex = clientData.indexOf(';');
 

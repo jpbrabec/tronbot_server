@@ -1,5 +1,6 @@
 var _ = require('underscore');
 var Account = require('./account.js');
+var constants = require('./const.js');
 
 /**
  * Client connected to the server
@@ -8,7 +9,8 @@ module.exports = function Client(socket) {
 	var self = this;
 	self.socket = socket;
 	self.name = socket.remoteAddress+":"+socket.remotePort;
-	self.status = "STATUS_NO_AUTH";
+	self.state = constants.STATE_NO_AUTH;
+
 	self.authenticated = null;
 
 	//Write data to the client
@@ -39,7 +41,7 @@ module.exports = function Client(socket) {
 	//Marks this client as authenticated
 	self.authenticate = function authenticate(account,key) {
 		self.authenticated = key;
-		self.status = "STATUS_PENDING";
+		self.state = constants.STATE_PENDING;
 		console.log("Client <" + self.name + "> authed as <" + account.name + ">");
 		self.name = account.name + "_" + self.name;
 	};
@@ -50,7 +52,7 @@ module.exports = function Client(socket) {
 		var clientWords = data.split(" ");
 
 		//Drop messages without authentication
-		if(self.authenticated === null && clientWords[0] !== "AUTH") {
+		if(self.authenticated === null && clientWords[0] !== constants.CCOMMAND_AUTH) {
 			//Client is not authenticated, drop mesasge.
 			console.log("Dropping unauthenticated message from client <" + self.name + ">: " + data);
 			return;
@@ -58,12 +60,12 @@ module.exports = function Client(socket) {
 
 		switch(clientWords[0]) {
 			//AUTH [key]
-			case "AUTH":
+			case constants.CLIENT_COMMAND_AUTH:
 				self.handleAuth(clientWords);
 				break;
 
 			default:
-				console.log("Unknown client state: " + self.status);
+				console.log("Unknown client state: " + self.state);
 				break;
 		}
 	};
@@ -77,7 +79,7 @@ module.exports = function Client(socket) {
 		//Was this key already in use?
 		if(dupIndex >= 0) {
 			console.log("Key re-used. Kicking client <" + clientList[dupIndex].name + ">");
-			clientList[dupIndex].sendMessage("ERROR KEY_REUSED");
+			clientList[dupIndex].sendMessage(constants.ERR_AUTH_REUSED);
 			clientList[dupIndex].kill();
 		}
 
@@ -85,17 +87,19 @@ module.exports = function Client(socket) {
 			key: clientWords[1]
 		}).then((result) => {
 			if(result) {
+				//Auth is accepted
 				self.authenticate(result,clientWords[1]);
-				self.sendMessage("AUTH_VALID");
+				self.sendMessage(constants.AUTH_OKAY);
 				return;
 			} else {
-				self.sendMessage("ERROR AUTH_INVALID");
+				//Auth is invalid
+				self.sendMessage(constants.ERR_AUTH_INVALID);
 				self.kill();
 				return;
 			}
 		}).catch((e) => {
 			console.log("Auth Error: " + e);
-			self.sendMessage("ERROR AUTH_INVALID");
+			self.sendMessage(constants.ERR_AUTH_INVALID);
 			self.kill();
 			return;
 		});
