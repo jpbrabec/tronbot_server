@@ -1,5 +1,5 @@
 var net = require('net');
-var tickHandler = require('./src/tick.js');
+var tickHandler = require('./src/manager.js').tickHandler;
 var sockets = require('./src/sockets.js');
 var mongoose = require('mongoose');
 var log = require('./src/log.js');
@@ -16,7 +16,10 @@ mongoose.connect(process.env.MONGO_URL)
 });
 
 var server = net.createServer(sockets.socketHandler);
-server.listen(8081);
+var port = process.env.PORT || 8080;
+server.listen(port, () => {
+    log.info("Server listening on port " + port);
+});
 
 
-setInterval(tickHandler,2000);
+setInterval(tickHandler,1000);

@@ -10,9 +10,6 @@ module.exports.socketHandler = function (socket) {
 	clientList.push(client);
 	client.sendMessage(constants.SCOMMAND_REQUEST_KEY);
 
-	//TODO- Add user auth, kick when multiple accounts with same key
-	//TODO- Add a logging system
-	//TODO- (!) Restructure to tick once each client sends message, with an upper limit
 
 	socket.on('data',function(data) {
 		clientData += data.toString();

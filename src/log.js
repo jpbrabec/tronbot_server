@@ -8,7 +8,7 @@ switch(process.env.LOGLEVEL.toLowerCase()) {
         log.setLevel('debug');
         break;
 
-    case "INFO":
+    case "info":
         log.setLevel('info');
         break;
 

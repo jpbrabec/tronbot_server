@@ -1,4 +1,5 @@
 var log = require('./log.js');
+require('dotenv').config();
 
 /**
  * Game being played between clients
@@ -7,10 +8,11 @@ module.exports = function Game(players) {
 	var self = this;
 	self.playersList = players;
 	self.boardState = generateBoard(5);
-	self.id = generateID();
+	self.name = generateID();
 	self.turnCount = 0;
+	self.timeoutCancel = null;
 
-    log.info("Starting game <" + self.id + "> with " + self.playersList.length + " players ");
+    log.info("Starting game <" + self.name + "> with " + self.playersList.length + " players: " + players);
 
 	//Print the board state
 	self.printBoard = function printBoard() {
@@ -37,8 +39,32 @@ module.exports = function Game(players) {
 		//TODO- Check if any clients did not move
 	};
 
-	self.printBoard();
-	self.requestMoves();
+	self.runTurn = function runTurn() {
+		//Cancel previous timeout if set
+		if(self.timeoutCancel) {
+			clearTimeout(self.timeoutCancel);
+			self.timeoutCancel = null;
+		}
+
+		//Process pending moves
+		if(self.turnCount > 0) {
+			processMoves();
+		}
+
+		//Request new moves
+		requestMoves();
+
+		//Start a timout for slow clients
+		self.timeoutCancel = setTimeout(self.turnTimeout,process.env.MOVETIMEOUT || 1500);
+	};
+
+	self.turnTimeout = function turnTimeout() {
+		log.info("Game <" + self.name + "> timeout expired.");
+		//TODO- Handle timeout
+		throw "TODO- Handle game timeout";
+	};
+
+	self.runTurn();
 };
 
 function generateBoard(size) {
