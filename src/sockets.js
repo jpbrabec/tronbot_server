@@ -35,7 +35,7 @@ module.exports.socketHandler = function (socket) {
 	socket.on('end',function(){
 		//Client ended the connection. Remove from list.
 		log.info("Client ended connection: " + client.name);
-		client.cleanup();
+		client.kill();
 	});
 
 	socket.on('error',function(err){

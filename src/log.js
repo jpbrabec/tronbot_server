@@ -1,8 +1,7 @@
 const log = require('simple-node-logger').createSimpleLogger('debug.log');
 require('dotenv').config();
 
-//TODO- Set level based on env var
-console.log("Log leve: " + process.env.LOGLEVEL);
+console.log("Log level: " + process.env.LOGLEVEL);
 switch(process.env.LOGLEVEL.toLowerCase()) {
     case "debug":
         log.setLevel('debug');
@@ -21,8 +20,9 @@ switch(process.env.LOGLEVEL.toLowerCase()) {
         break;
 
     default:
-        console.log("Unknown log level "+process.env.LOGLEVEL.toLowerCase());
+        console.log("Unknown log level "+process.env.LOGLEVEL);
         log.setLevel('debug');
         break;
 }
+
 module.exports = log;
