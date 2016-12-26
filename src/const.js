@@ -4,6 +4,7 @@ module.exports = {
     STATE_NO_AUTH: "STATUS_NO_AUTH", //Client has not been authenticated
     STATE_PENDING: "STATUS_PENDING", //Client is authenticated but not in a game
     STATE_KILLED: "STATUS_KILLED", //Client has been kicked, no messages will be handled
+    STATE_REQMOVES: "STATUS_REQMOVES", //Client has been asked to submit moves, but has not answered
 
     //Server Messages (to be sent to client)
     SCOMMAND_REQUEST_KEY: "REQUEST_KEY",  //Request a key from client, to be answered with AUTH [key]

@@ -24,3 +24,10 @@ module.exports.handler = function viewerHandler(request) {
       log.info(' Peer ' + connection.remoteAddress + ' disconnected.');
   });
 };
+
+
+module.exports.notifyViewers = function notifyViewers(gameID) {
+  //TODO- Have games call this function when they update their state
+  //TODO- This function will then notify all subscribed viewers of the change
+  //TODO- This file will keep its own ViewerList[] array, and each viewer will have a list of subscribed games
+};

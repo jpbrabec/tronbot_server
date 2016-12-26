@@ -11,7 +11,7 @@ require('dotenv').config();
 module.exports = function Client(socket) {
 	var self = this;
 	self.socket = socket;
-	self.name = socket.remoteAddress+":"+socket.remotePort;
+	self.name = manager.generateID();
 	self.state = constants.STATE_NO_AUTH;
 	self.authenticated = null;
 	self.cycleRequests = 0;
@@ -31,7 +31,7 @@ module.exports = function Client(socket) {
 		if(self.killed) {
 			return;
 		}
-		log.info("Kicking client <"+self.name+">");
+		log.info("Kicking client <"+self.name+"> with message: " + message);
 		if(message) {
 			self.sendMessage(message);
 		}
@@ -46,10 +46,20 @@ module.exports = function Client(socket) {
 		var gameList = require('./sockets.js').gameList;
 
 		log.info("Client  <"+self.name+"> is disconnected. Cleaning up.");
+		log.warn("Removing client from global list at index " + _.findIndex(clientList,{name: self.name}));
+		//Remove player from global client list
 		clientList.splice(_.findIndex(clientList,{name: self.name}),1);
 
-		//TODO Kill any games this client was involved in
-		throw "TODO- Kill any games client was involved in";
+		for(var i=0; i < gameList.length;i++) {
+			log.info("Checking game " + gameList[i].name + " with player count " + gameList[i].playersList.length);
+			var matchIndex = _.findIndex(gameList[i].playersList,{name: self.name});
+			if(matchIndex >= 0) {
+				//Notify game that a player has left
+				gameList[i].notifyPlayerLeft(self.name);
+			}
+		}
+		manager.runMatchmaking();
+		return;
 	};
 
 	//Marks this client as authenticated
