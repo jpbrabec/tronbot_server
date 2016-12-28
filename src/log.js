@@ -1,4 +1,4 @@
-const log = require('simple-node-logger').createSimpleLogger('debug.log');
+const log = require('simple-node-logger').createSimpleLogger('logs/debug.log');
 require('dotenv').config();
 
 console.log("Log level: " + process.env.LOGLEVEL);

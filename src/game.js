@@ -86,10 +86,13 @@ module.exports = function Game(players) {
 	self.turnTimeout = function turnTimeout() {
 		log.info("Game <" + self.name + "> timeout expired.");
 		//TODO- Handle timeout
+		//TODO- Also make sure all the clients are still alive, ending game otherwise.
 		log.error("FIXME- Handle game timeout");
 	};
 
-	self.runTurn();
+	self.startGame = function startGame() {
+		self.runTurn();
+	};
 };
 
 function generateBoard(size) {
