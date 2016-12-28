@@ -61,6 +61,7 @@ module.exports.notifyGameOver = function notifyGameOver(gameName,winner) {
   for(var i=0; i<gameList[gameIndex].playersList.length; i++) {
     log.debug("Updating player at index " + i + " with name: "+gameList[gameIndex].playersList[i].name);
     gameList[gameIndex].playersList[i].state = constants.STATE_PENDING;
+    gameList[gameIndex].playersList[i].gameName = null;
   }
 
   //Remove game from list

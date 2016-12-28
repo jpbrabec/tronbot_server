@@ -16,6 +16,7 @@ module.exports = function Client(socket) {
 	self.authenticated = null;
 	self.cycleRequests = 0;
 	self.killed = false;
+	self.gameName = null;
 
 	//Write data to the client
 	self.sendMessage = function sendMessage(message) {
@@ -50,13 +51,10 @@ module.exports = function Client(socket) {
 		//Remove player from global client list
 		clientList.splice(_.findIndex(clientList,{name: self.name}),1);
 
-		for(var i=0; i < gameList.length;i++) {
-			log.info("Checking game " + gameList[i].name + " with player count " + gameList[i].playersList.length);
-			var matchIndex = _.findIndex(gameList[i].playersList,{name: self.name});
-			if(matchIndex >= 0) {
-				//Notify game that a player has left
-				gameList[i].notifyPlayerLeft(self.name);
-			}
+		//Find any games this player was in
+		if(self.gameName) {
+			var gameIndex = _.findIndex(gameList,{name: self.gameName});
+			gameList[gameIndex].notifyPlayerLeft(self.name);
 		}
 		manager.runMatchmaking();
 		return;
@@ -118,10 +116,38 @@ module.exports = function Client(socket) {
 				self.handleAuth(clientWords);
 				break;
 
+			//MOVE [MoveDir]
+			case constants.CCOMMAND_MOVE:
+				self.handleMove(clientWords);
+				break;
+
 			default:
 				log.info("Unknown client command: " + clientWords[0]);
 				break;
 		}
+	};
+
+	//Handle client move
+	self.handleMove = function handleMove(clientWords) {
+		log.info("Client <" + self.name + "> sent a move");
+		if(!self.gameName || self.state !== constants.STATE_REQMOVES) {
+			//Client was not asked for a move
+			log.info("Client <" + self.name + "> tried to make a move while in state " + self.state);
+			self.sendMessage(constants.ERR_UNPROMPTED);
+			return;
+		}
+		if(clientWords[1] !== constants.MOVE_UP &&
+			clientWords[1] !== constants.MOVE_RIGHT &&
+			clientWords[1] !== constants.MOVE_DOWN &&
+			clientWords[1] !== constants.MOVE_LEFT ) {
+				//This move is invalid
+				log.info("Client <" + self.name + "> tried to make an invalid move: " + clientWords[1]);
+				self.sendMessage(constants.ERR_MOVE_INVALID);
+				return;
+			}
+		var gameList = require('./sockets.js').gameList;
+		var gameIndex = _.findIndex(gameList,{name: self.gameName});
+		gameList[gameIndex].notifyPlayerMove(self.name,clientWords);
 	};
 
 	//Handle auth attempt.

@@ -1,6 +1,7 @@
 var log = require('./log.js');
 var manager = require('./manager.js');
 var constants = require('./const.js');
+var _ = require('underscore');
 require('dotenv').config();
 
 /**
@@ -9,11 +10,16 @@ require('dotenv').config();
 module.exports = function Game(players) {
 	var self = this;
 	self.playersList = players;
-	self.boardState = generateBoard(5);
+	self.movesList = [];
+	self.boardSize = process.env.BOARDSIZE;
 	self.name = "GAME_" + manager.generateID();
 	self.turnCount = 0;
 	self.timeoutCancel = null;
 	self.ended = false;
+
+	for(var i=0; i < self.playersList.length; i++) {
+		self.playersList[i].gameName = self.name;
+	}
 
   log.info("Starting game <" + self.name + "> with " + self.playersList.length);
 
@@ -30,19 +36,22 @@ module.exports = function Game(players) {
 
 	//Request moves from clients
 	self.requestMoves = function requestMoves() {
+		log.debug("Requesting moves for game <" + self.name + ">");
 		for(var i=0; i<self.playersList.length; i++) {
-			players[i].state = constants.STATE_REQMOVES;
-			players[i].sendMessage("Please send us your move, thanks.");
-			//TODO- Each client should have a move json object where they keys are gameIDs and the values are moves.
+			self.playersList[i].state = constants.STATE_REQMOVES;
+			self.movesList[i] = null;
+			self.playersList[i].sendMessage(constants.SCOMMAND_REQUEST_MOVE + " " + self.stringifyBoardState());
 		}
 	};
 
 	//Process moves from clients
 	self.processMoves= function processMoves() {
-		//TODO- Check if any clients did not move
+		//TODO- Update board state
 	};
 
+	//Starts a turn, requesting moves and setting timeout
 	self.runTurn = function runTurn() {
+		log.info("Game <" + self.name + "> starting turn "+ self.turnCount);
 		//Cancel previous timeout if set
 		if(self.timeoutCancel) {
 			clearTimeout(self.timeoutCancel);
@@ -51,14 +60,14 @@ module.exports = function Game(players) {
 
 		//Process pending moves
 		if(self.turnCount > 0) {
-			processMoves();
+			self.processMoves();
 		}
-
 		//Request new moves
 		self.requestMoves();
-
 		//Start a timout for slow clients
 		self.timeoutCancel = setTimeout(self.turnTimeout,process.env.MOVETIMEOUT || 1500);
+		//Increase counter
+		self.turnCount += 1;
 	};
 
 	//Called when a player leaves the game for any reason
@@ -68,6 +77,66 @@ module.exports = function Game(players) {
 		//For now just end the game with no winner
 		//TODO- The winner should be the other player who did not DC
 		self.endGame(-1);
+	};
+
+	//Called when a player makes a move
+	self.notifyPlayerMove = function notifyPlayerMove(playerName,move) {
+		var playerIndex = _.findIndex(self.playersList,{name: playerName});
+		//Update player state
+		self.playersList[playerIndex].state = constants.STATE_SENTMOVES;
+		self.movesList[playerIndex] = move;
+
+		//Have all players sent moves?
+		var ready = 0;
+		for(var i=0; i < self.playersList.length; i++) {
+			if(self.movesList[i] !== null) {
+				ready += 1;
+			}
+		}
+		if(ready < self.playersList.length) {
+			log.info("Game <" + self.name + "> still waiting on moves. Have " + ready + "/" + self.playersList.length);
+		} else {
+			//We can start the next turn immediately
+			log.info("Game <" + self.name + "> now has " + ready + "/" + self.playersList.length + " moves. Running turn.");
+			self.runTurn();
+		}
+	};
+
+	//Returns board state as a string
+	self.stringifyBoardState = function stringifyBoardState() {
+		var message = "";
+		message += self.boardSize + " ";
+		for(var y=0; y<self.boardSize; y++) {
+			var row = "";
+			for(var x=0; x<self.boardSize; x++) {
+				row += self.boardState[x][y];
+				if(y != self.boardSize-1 || x != self.boardSize-1) {
+					 row += ",";
+				}
+			}
+			message += row;
+		}
+		return message;
+	};
+	self.generateBoard = function generateBoard() {
+		var arr = [];
+		for (var i=0;i<self.boardSize;i++) {
+			arr[i] = [];
+			for(var j=0;j<self.boardSize;j++) {
+				arr[i][j] = 0;
+			}
+		}
+		switch(self.playersList.length) {
+			case 2:
+				var mid = self.boardSize/2;
+				arr[0][mid] = 1;
+				arr[self.boardSize-1][mid] = 1;
+				break;
+			default:
+				throw "Unknown initial board state! Too many players!";
+		}
+
+		self.boardState = arr;
 	};
 
 	self.endGame = function endGame(winner) {
@@ -91,17 +160,7 @@ module.exports = function Game(players) {
 	};
 
 	self.startGame = function startGame() {
+		self.generateBoard(self.boardSize);
 		self.runTurn();
 	};
 };
-
-function generateBoard(size) {
-	var arr = [];
-	for (var i=0;i<size;i++) {
-		arr[i] = [];
-		for(var j=0;j<size;j++) {
-			arr[i][j] = 0;
-		}
-	}
-	return arr;
-}
