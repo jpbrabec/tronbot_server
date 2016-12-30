@@ -1,22 +1,29 @@
 var log = require('./log.js');
 var Game = require('./game.js');
 var constants = require('./const.js');
+var viewerManager = require('./viewerManager.js');
 var _ = require('underscore');
 var matchMaking = false;
+
+//Runs matchmaking when available 
+module.exports.runMatchmaking = function runMatchmaking() {
+    setTimeout(module.exports.executeMatchmaking,0);
+};
 
 /**
 * Match any pending players to start a game
 */
-module.exports.runMatchmaking = function runMatchmaking() {
+module.exports.executeMatchmaking = function executeMatchmaking() {
     if(matchMaking) {
       log.debug("Matchmaking is already in progress, adding another queue");
-      setTimeout(module.exports.runMatchmaking,0);
+      setTimeout(module.exports.executeMatchmaking,0);
       return;
     }
     matchMaking = true;
     var pendingList = [];
     var gameList = require('./sockets.js').gameList;
     var clientList = require('./sockets.js').clientList;
+    var newGames = 0;
     for(var i = 0; i < clientList.length; i++) {
         if(clientList[i].state === constants.STATE_PENDING) {
             pendingList.push(clientList[i]);
@@ -28,9 +35,14 @@ module.exports.runMatchmaking = function runMatchmaking() {
         gameList.push(newGame);
         pendingList.splice(0,2);
         newGame.startGame();
+        newGames += 1;
+    }
+    if(newGames > 0) {
+      viewerManager.updateGamesList();
     }
     log.info("After Matchmaking Status: \nConnected Clients:" + getNames(clientList) + "\nGames: "  + gameList.length + " games in progress.\nClients Waiting: " + getNames(pendingList)+"\n----------------------");
     matchMaking = false;
+
 };
 
 

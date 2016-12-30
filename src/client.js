@@ -168,8 +168,8 @@ module.exports = function Client(socket) {
 		}).then((result) => {
 			if(result) {
 				//Auth is accepted
-				self.authenticate(result,clientWords[1]);
 				self.sendMessage(constants.AUTH_OKAY);
+				self.authenticate(result,clientWords[1]);
 				return;
 			} else {
 				//Auth is invalid

@@ -2,7 +2,7 @@ var http = require('http');
 var net = require('net');
 var tickHandler = require('./src/manager.js').tickHandler;
 var sockets = require('./src/sockets.js');
-var viewer = require('./src/viewer.js');
+var viewerManager = require('./src/viewerManager.js');
 var mongoose = require('mongoose');
 var log = require('./src/log.js');
 var WebSocketServer = require('websocket').server;
@@ -41,7 +41,7 @@ wsServer = new WebSocketServer({
   httpServer: server,
   autoAcceptConnections: false
 });
-wsServer.on('request',viewer.handler);
+wsServer.on('request',viewerManager.handler);
 
 
 //Start tick handler for rate limiting

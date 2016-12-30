@@ -28,4 +28,7 @@ module.exports = {
     MOVE_DOWN: "DOWN",
     MOVE_LEFT: "LEFT",
 
+    //Viewer Commands
+    SCOMMAND_GAMELIST: "GAME_LIST", //Notify client of the current active games
+
 };

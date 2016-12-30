@@ -1,33 +1,43 @@
+var manager = require('./manager.js');
 var log = require('./log.js');
 
 /**
-* Handler for game viewers. Viewers may not participate in games but can subscribe to game data.
-*/
-module.exports.handler = function viewerHandler(request) {
+ * Viewer connected to the server
+ */
+module.exports = function Viewer(connection) {
+	var self = this;
+	self.connection = connection;
+	self.name = manager.generateID();
+	self.killed = false;
+  log.info("Viewer Connected: " + self.name);
 
-  var connection = request.accept('tron-protocol', request.origin);
-  log.info("Viewer Connection accepted.");
+	//Write data to the client
+	self.sendMessage = function sendMessage(message) {
+		if(self.killed) {
+			return;
+		}
+    self.connection.sendUTF(message + ";");
+	};
 
-  //Message Received
-  connection.on('message', function(message) {
-      if (message.type === 'utf8') {
-          console.log('Received Message: ' + message.utf8Data);
-          connection.sendUTF("Hello Viewer");
-      } else if (message.type === 'binary') {
-          console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
-          connection.sendBytes(message.binaryData);
-      }
-  });
+  //Handle an incoming message
+  self.receiveMessage = function receiveMessage(message) {
+    log.warn(self.name + ": Got message: " + message);
+  };
 
-  //Connection closed
-  connection.on('close', function(reasonCode, description) {
-      log.info(' Peer ' + connection.remoteAddress + ' disconnected.');
-  });
-};
+  //End the connection with the client, sending an optional message
+	self.kill = function kill(message) {
+		if(self.killed) {
+			return;
+		}
+		log.info("Kicking viewer <"+self.name+"> with message: " + message);
+		if(message) {
+			self.sendMessage(message);
+		}
+		self.killed = true;
+		connection.close();
+    var viewerList = require('./viewerManager.js').viewerList;
+    viewerList.splice(_.findIndex(viewerList,{name: self.name}),1);
+	};
 
 
-module.exports.notifyViewers = function notifyViewers(gameID) {
-  //TODO- Have games call this function when they update their state
-  //TODO- This function will then notify all subscribed viewers of the change
-  //TODO- This file will keep its own ViewerList[] array, and each viewer will have a list of subscribed games
 };
