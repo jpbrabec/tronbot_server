@@ -17,6 +17,8 @@ module.exports = {
     AUTH_OKAY: "AUTH_VALID", //Notify client that auth was accepted
     ERR_RATELIMIT: "ERR_RATE_LIMIT", //Notify client that its sending too many requests
     ERR_LENGTHLIMIT: "ERR_LENGTH_LIMIT", //Notify client that its sending too long requests
+    PLAYER_DIED: "PLAYER_DIED", //Notify client that their bike died
+    PLAYER_WIN: "PLAYER_WIN", //Notify client that they won
 
     //Client commands (received from client)
     CCOMMAND_AUTH: "AUTH", //Client is attempting to authenticate, AUTH [key]

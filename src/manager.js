@@ -47,21 +47,24 @@ module.exports.tickHandler = function tickHandler() {
 /**
 * Run when a game is ending
 */
-module.exports.notifyGameOver = function notifyGameOver(gameName,winner) {
+module.exports.notifyGameOver = function notifyGameOver(gameName) {
 
-  if(winner == -1) {
-    log.warn("Game " + gameName + " ended unexpectedly.");
-  } else {
-    //TODO- Update scores in database
-  }
+  //TODO- Update scores in database
 
   var gameList = require('./sockets.js').gameList;
+
+  //TODO- run matchmaking periodically or run it after kicking players. Right now players can die and wont be rematched.
+
   //Update state for each player
   var gameIndex = _.findIndex(gameList,{name: gameName});
-  for(var i=0; i<gameList[gameIndex].playersList.length; i++) {
-    log.debug("Updating player at index " + i + " with name: "+gameList[gameIndex].playersList[i].name);
-    gameList[gameIndex].playersList[i].state = constants.STATE_PENDING;
-    gameList[gameIndex].playersList[i].gameName = null;
+  for(var playerName in gameList[gameIndex].playersList) {
+    var player = gameList[gameIndex].playersList[playerName];
+    if(player) {
+      log.debug("Updating player " + playerName);
+      player.state = constants.STATE_PENDING;
+      player.gameName = null;
+      player.sendMessage(constants.PLAYER_WIN); //TODO- Determine which player won
+    }
   }
 
   //Remove game from list
