@@ -10,7 +10,7 @@ require('dotenv').config();
 module.exports = function Game(players) {
 	var self = this;
 	self.playersList = players;
-	self.movesList = [];
+	self.movesList = {};
 	self.boardSize = process.env.BOARDSIZE;
 	self.name = "GAME_" + manager.generateID();
 	self.turnCount = 0;
@@ -25,12 +25,12 @@ module.exports = function Game(players) {
 
 	//Print the board state
 	self.printBoard = function printBoard() {
-		for(var y=0; y<5; y++) {
+		for(var y=0; y<self.boardSize; y++) {
 			var row = "";
-			for(var x=0; x<5; x++) {
+			for(var x=0; x<self.boardSize; x++) {
 				row += self.boardState[x][y] + ", ";
 			}
-			log.debug(row);
+			log.info(row);
 		}
 	};
 
@@ -39,14 +39,117 @@ module.exports = function Game(players) {
 		log.debug("Requesting moves for game <" + self.name + ">");
 		for(var i=0; i<self.playersList.length; i++) {
 			self.playersList[i].state = constants.STATE_REQMOVES;
-			self.movesList[i] = null;
+			self.movesList[self.playersList[i].name] = null; //Clear player move
 			self.playersList[i].sendMessage(constants.SCOMMAND_REQUEST_MOVE + " " + self.stringifyBoardState());
 		}
 	};
 
 	//Process moves from clients
-	self.processMoves= function processMoves() {
-		//TODO- Update board state
+	self.processMoves = function processMoves() {
+		log.info("CRUNCHING MOVES FOR TURN #"+self.turnCount);
+		log.info("BOARD STATE BEFORE TURN");
+		self.printBoard();
+		var oldCoords = [];
+		var diff = [];
+		var newCoords = [];
+		var stillAlive = [];
+
+		//Determine new positions and bound check
+		for(var playerIndex=0; playerIndex < self.playersList.length; playerIndex++) {
+			//Determine old & new positions
+			oldCoords[playerIndex] = self.getPlayerCoordinates(playerIndex);
+			switch(self.movesList[self.playersList[playerIndex].name]) {
+				case constants.MOVE_UP:
+					diff[playerIndex] = {x: 0, y: -1};
+					break;
+				case constants.MOVE_DOWN:
+					diff[playerIndex] = {x: 0, y: 1};
+					break;
+				case constants.MOVE_RIGHT:
+					diff[playerIndex] = {x: 1, y: 0};
+					break;
+				case constants.MOVE_LEFT:
+					diff[playerIndex] = {x: -1, y: 0};
+					break;
+				default:
+					diff[playerIndex] = {x: 0, y: 0};
+					break;
+			}
+			newCoords[playerIndex] = {x: oldCoords[playerIndex].x + diff[playerIndex].x, y: oldCoords[playerIndex].y + diff[playerIndex].y};
+			log.debug("OLD COORDS " + JSON.stringify(oldCoords[playerIndex]));
+			log.debug("DIFF COORDS " + JSON.stringify(diff[playerIndex]));
+			log.debug("NEW COORDS " + JSON.stringify(newCoords[playerIndex]));
+
+			//Is this player moving out of bounds?
+			if(newCoords.x < 0 ||
+				newCoords.x >= self.boardSize ||
+				newCoords.y < 0 ||
+				newCoords.y >= self.boardSize) {
+					//Player has left the board and should die
+					stillAlive[playerIndex] = false;
+				} else {
+					stillAlive[playerIndex] = true;
+				}
+		}
+
+		//Check for collisions with walls
+		for(playerIndex=0; playerIndex < self.playersList.length; playerIndex++) {
+			//Is the new location occupied already?
+			var targetState = self.boardState[newCoords[playerIndex].x][newCoords[playerIndex].y];
+			if(targetState !== 0) {
+				//This player hit a wall OR an opponents position before moving
+				stillAlive[playerIndex] = false;
+			}
+		}
+
+		//Move all the living players and check for collisions
+		for(playerIndex=0; playerIndex < self.playersList.length; playerIndex++) {
+			if(stillAlive[playerIndex]) {
+				//Convert previous position to a wall
+				self.boardState[oldCoords[playerIndex].x][oldCoords[playerIndex].y] *= -1;
+
+				//Is this next square occupied? If so, you both die.
+				var updatedState = self.boardState[newCoords[playerIndex].x][newCoords[playerIndex].y];
+				if(updatedState !== 0) {
+					//This player and targetState player both die
+					stillAlive[playerIndex] = false;
+					stillAlive[updatedState*(-1)] = false;
+				}
+				self.boardState[newCoords[playerIndex].x][newCoords[playerIndex].y] = playerIndex+1;
+			}
+		}
+
+		//TODO- Handle this
+		//Handle dead players. Convert all dead bikes into walls. Check for match end.
+		for(playerIndex=0; playerIndex < self.playersList.length; playerIndex++) {
+			if(!stillAlive[playerIndex]) {
+				log.warn("PLAYER <" + self.playersList[playerIndex].name + "> died!");
+			}
+		}
+		log.info("FINISHED CRUNCHING MOVES FOR TURN #"+self.turnCount);
+
+	};
+
+	self.killPlayer = function killPlayer(playerIndex) {
+		//TODO- Update their position on the grid to a negative
+		log.error("TODO- Player index " + playerIndex + " died.");
+	};
+
+	//Returns the player coordinates of the player
+	self.getPlayerCoordinates = function getPlayerCoordinates(playerIndex) {
+
+		//Search the grid for this player
+		for(var y=0; y<self.boardSize; y++) {
+			for(var x=0; x<self.boardSize; x++) {
+				//Does this cell contain the player
+				if(self.boardState[x][y] == playerIndex+1) {
+					//Return player coordinates
+					 return {x: x, y: y};
+				}
+			}
+		}
+		log.error("Unable to locate player in game < " +self.gameName + "!");
+		return null;
 	};
 
 	//Starts a turn, requesting moves and setting timeout
@@ -84,12 +187,12 @@ module.exports = function Game(players) {
 		var playerIndex = _.findIndex(self.playersList,{name: playerName});
 		//Update player state
 		self.playersList[playerIndex].state = constants.STATE_SENTMOVES;
-		self.movesList[playerIndex] = move;
+		self.movesList[self.playersList[playerIndex].name] = move;
 
 		//Have all players sent moves?
 		var ready = 0;
 		for(var i=0; i < self.playersList.length; i++) {
-			if(self.movesList[i] !== null) {
+			if(self.movesList[self.playersList[i].name]) {
 				ready += 1;
 			}
 		}
@@ -130,13 +233,15 @@ module.exports = function Game(players) {
 			case 2:
 				var mid = self.boardSize/2;
 				arr[0][mid] = 1;
-				arr[self.boardSize-1][mid] = 1;
+				arr[self.boardSize-1][mid] = 2;
 				break;
 			default:
 				throw "Unknown initial board state! Too many players!";
 		}
 
 		self.boardState = arr;
+		log.info("BOARD IS GENERATED");
+		self.printBoard();
 	};
 
 	self.endGame = function endGame(winner) {

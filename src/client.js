@@ -147,7 +147,7 @@ module.exports = function Client(socket) {
 			}
 		var gameList = require('./sockets.js').gameList;
 		var gameIndex = _.findIndex(gameList,{name: self.gameName});
-		gameList[gameIndex].notifyPlayerMove(self.name,clientWords);
+		gameList[gameIndex].notifyPlayerMove(self.name,clientWords[1]);
 	};
 
 	//Handle auth attempt.
