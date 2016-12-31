@@ -30,5 +30,8 @@ module.exports = {
 
     //Viewer Commands
     SCOMMAND_GAMELIST: "GAME_LIST", //Notify client of the current active games
+    VCOMMAND_SUBSCRIBE: "SUBSCRIBE", //Notify server that you want to receive updates about a game
+    ERR_SUBSCRIBE_INVALID: "ERR_SUBSCRIBE_INVALID", //Notify client that they tried to subscribe an invalid game
+    SCOMMAND_GAMEUPDATE: "GAME_UPDATE", //Notify client of the current gameboard state
 
 };

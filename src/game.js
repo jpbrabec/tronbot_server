@@ -1,5 +1,6 @@
 var log = require('./log.js');
 var manager = require('./manager.js');
+var viewerManager = require('./viewerManager.js');
 var constants = require('./const.js');
 var _ = require('underscore');
 require('dotenv').config();
@@ -34,7 +35,7 @@ module.exports = function Game(players) {
 			for(var x=0; x<self.boardSize; x++) {
 				row += self.boardState[x][y] + ", ";
 			}
-			log.info(row);
+			log.debug(row);
 		}
 	};
 
@@ -52,7 +53,7 @@ module.exports = function Game(players) {
 	//Process moves from clients. Returns false if game ends.
 	self.processMoves = function processMoves() {
 		log.info("CRUNCHING MOVES FOR TURN #"+self.turnCount);
-		log.info("BOARD STATE BEFORE TURN");
+		log.debug("BOARD STATE BEFORE TURN");
 		self.printBoard();
 		var oldCoords = {};
 		var diff = {};
@@ -148,6 +149,7 @@ module.exports = function Game(players) {
 			}
 		}
 		log.info("FINISHED CRUNCHING MOVES FOR TURN #"+self.turnCount);
+		viewerManager.notifyViewers(self.name);
 		return true;
 	};
 

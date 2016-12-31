@@ -2,6 +2,9 @@ var log = require('./log.js');
 var constants = require('./const.js');
 var Viewer = require('./viewer.js');
 var viewersList = [];
+var _ = require('underscore');
+
+
 /**
 * Handler for game viewers. Viewers may not participate in games but can subscribe to game data.
 */
@@ -25,7 +28,7 @@ module.exports.handler = function viewerHandler(request) {
 
   //Connection closed
   connection.on('close', function(reasonCode, description) {
-      log.info(' Peer ' + connection.remoteAddress + ' disconnected.');
+      log.info(' Viewer '  + newViewer.name +  ' at '  + connection.remoteAddress + ' disconnected.');
   });
 };
 
@@ -38,10 +41,33 @@ module.exports.updateGamesList = function updateGamesList() {
 };
 
 //Push updated game state to subscribed viewers
-module.exports.notifyViewers = function notifyViewers(gameID) {
+module.exports.notifyViewers = function notifyViewers(gameName) {
   //TODO- Have games call this function when they update their state
   //TODO- This function will then notify all subscribed viewers of the change
-  //TODO- This file will keep its own ViewerList[] array, and each viewer will have a list of subscribed games
+  //TODO- This file will keep its own viewerList[] array, and each viewer will have a list of subscribed games
+  //TODO- When a game ends kill all the viewers. OR break the link here if lookup fails.
+  log.info("Notifying viewers for game " + gameName);
+  for(var i=0; i < viewersList.length; i++) {
+    try {
+      //Is this viewer subscribed to this game?
+      var viewer = viewersList[i];
+      if(!viewer.gameName || viewer.gameName !== gameName) {
+        continue; //Not subscribed
+      } else {
+        var gameList = require('./sockets.js').gameList;
+        var gameIndex = _.findIndex(gameList,{name: viewer.gameName});
+        if(gameIndex < 0) {
+          //Invalid game index
+          viewer.gameName = null;
+        } else {
+          viewer.sendMessage(constants.SCOMMAND_GAMEUPDATE + " " + gameList[gameIndex].stringifyBoardState());
+        }
+      }
+    } catch(e) {
+      log.error("Error sending message to viewer in game " + gameName + ": " + e + "\n" + e.stack);
+    }
+  }
+
 };
 
 module.exports.viewersList = viewersList;
