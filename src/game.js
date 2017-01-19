@@ -153,13 +153,14 @@ module.exports = function Game(players) {
 		return true;
 	};
 
+	//Kills the player. Call when the player dies. 
 	self.killPlayer = function killPlayer(playerName) {
 		log.info("Player " + playerName + " died.");
 		var player = self.playersList[playerName];
 
 		//Let player know they died
-		player.sendMessage(constants.PLAYER_DIED);
-
+		// player.sendMessage(constants.PLAYER_DIED);
+		player.kill(constants.PLAYER_DIED);
 		//Remove player from game
 		delete self.playersList[playerName];
 		self.currentPlayerCount -= 1;

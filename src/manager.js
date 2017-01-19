@@ -5,7 +5,7 @@ var viewerManager = require('./viewerManager.js');
 var _ = require('underscore');
 var matchMaking = false;
 
-//Runs matchmaking when available 
+//Runs matchmaking when available
 module.exports.runMatchmaking = function runMatchmaking() {
     setTimeout(module.exports.executeMatchmaking,0);
 };
@@ -75,7 +75,7 @@ module.exports.notifyGameOver = function notifyGameOver(gameName) {
       log.debug("Updating player " + playerName);
       player.state = constants.STATE_PENDING;
       player.gameName = null;
-      player.sendMessage(constants.PLAYER_WIN); //TODO- Determine which player won
+      player.kill(constants.PLAYER_WIN); //TODO- Determine which player won
     }
   }
 
