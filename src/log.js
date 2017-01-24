@@ -1,4 +1,8 @@
-const log = require('simple-node-logger').createSimpleLogger('logs/debug.log');
+const log = require('simple-node-logger').createRollingFileLogger({
+  logDirectory: __dirname + '/../logs',
+  fileNamePattern: 'rolling-<DATE>.log',
+  dateFormat: 'YYYY.MM.DD'
+});
 require('dotenv').config();
 
 console.log("Log level: " + process.env.LOGLEVEL);
