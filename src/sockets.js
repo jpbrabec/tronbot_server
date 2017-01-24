@@ -1,6 +1,6 @@
 var clientList = [];
 var gameList = [];
-var Client = require('./Client.js');
+var Client = require('./client.js');
 var constants = require('./const.js');
 var log = require('./log.js');
 
