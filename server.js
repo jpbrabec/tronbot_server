@@ -1,11 +1,15 @@
 var http = require('http');
+var express = require('express');
 var net = require('net');
 var tickHandler = require('./src/manager.js').tickHandler;
 var sockets = require('./src/sockets.js');
 var viewerManager = require('./src/viewerManager.js');
 var mongoose = require('mongoose');
 var log = require('./src/log.js');
+var path = require('path');
 var WebSocketServer = require('websocket').server;
+var bodyParser = require('body-parser');
+
 require('dotenv').config();
 
 mongoose.Promise = Promise; //Use ES6 Promises
@@ -42,6 +46,16 @@ wsServer = new WebSocketServer({
   autoAcceptConnections: false
 });
 wsServer.on('request',viewerManager.handler);
+
+//Init Admin Server
+var app = express();
+app.use(bodyParser.urlencoded({ extended: false }));
+
+var adminController = require('./src/adminController.js');
+app.use(adminController.authMiddleware);
+adminController.init(app);
+//Serve Static files
+app.use('/public', express.static(path.join(__dirname,'public')));
 
 
 //Start tick handler for rate limiting
