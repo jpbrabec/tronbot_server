@@ -320,7 +320,7 @@ module.exports = function Game(players) {
 		log.debug("Notifying players of game start for game <" + self.name + ">");
 		for(var playerName in self.playersList) {
 			var player = self.playersList[playerName];
-			player.sendMessage(constants.GAME_START + " " + self.playerNumbers[playerName]);
+			player.sendMessage(constants.GAME_START + " " + self.playerNumbers[playerName] + " " + self.currentPlayerCount);
 		}
 	};
 
