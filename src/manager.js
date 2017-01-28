@@ -83,6 +83,9 @@ module.exports.notifyGameOver = function notifyGameOver(gameName) {
   log.debug("Removing game at index " + gameIndex + " from list");
   gameList.splice(gameIndex,1);
 
+  //Notify viewers of new game list
+  viewerManager.updateGamesList();
+
   //Run matchmaker again
   module.exports.runMatchmaking();
 };
