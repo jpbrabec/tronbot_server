@@ -15,6 +15,7 @@ module.exports = {
     ERR_UNPROMPTED: "ERR_UNPROMPTED", //Notify client that they tried to make a move when they were not asked
     ERR_MOVE_INVALID: "ERR_MOVE_INVALID", //Notify client that they tried to make an invalid move
     AUTH_OKAY: "AUTH_VALID", //Notify client that auth was accepted
+    GAME_START: "GAME_START", //Notify player that game has started
     ERR_RATELIMIT: "ERR_RATE_LIMIT", //Notify client that its sending too many requests
     ERR_LENGTHLIMIT: "ERR_LENGTH_LIMIT", //Notify client that its sending too long requests
     PLAYER_DIED: "PLAYER_DIED", //Notify client that their bike died

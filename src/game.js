@@ -153,7 +153,7 @@ module.exports = function Game(players) {
 		return true;
 	};
 
-	//Kills the player. Call when the player dies. 
+	//Kills the player. Call when the player dies.
 	self.killPlayer = function killPlayer(playerName) {
 		log.info("Player " + playerName + " died.");
 		var player = self.playersList[playerName];
@@ -315,8 +315,18 @@ module.exports = function Game(players) {
 		log.error("FIXME- Handle game timeout");
 	};
 
+	//Send message to each player with game info
+	self.notifyPlayersGameStart = function notifyPlayersGameStart() {
+		log.debug("Notifying players of game start for game <" + self.name + ">");
+		for(var playerName in self.playersList) {
+			var player = self.playersList[playerName];
+			player.sendMessage(constants.GAME_START + " " + self.playerNumbers[playerName]);
+		}
+	};
+
 	self.startGame = function startGame() {
 		self.generateBoard(self.boardSize);
+		self.notifyPlayersGameStart();
 		self.runTurn();
 	};
 };
