@@ -59,7 +59,7 @@ module.exports.tickHandler = function tickHandler() {
 /**
 * Run when a game is ending
 */
-module.exports.notifyGameOver = function notifyGameOver(gameName) {
+module.exports.notifyGameOver = function notifyGameOver(gameName,winningPlayerName) {
 
   //TODO- Update scores in database
 
@@ -75,7 +75,12 @@ module.exports.notifyGameOver = function notifyGameOver(gameName) {
       log.debug("Updating player " + playerName);
       player.state = constants.STATE_PENDING;
       player.gameName = null;
-      player.kill(constants.PLAYER_WIN); //TODO- Determine which player won
+      if(!!winningPlayerName && playerName === winningPlayerName) {
+        //TODO- Count this total up in the database
+        player.kill(constants.PLAYER_WIN);
+      } else {
+        player.kill(constants.PLAYER_DIED);
+      }
     }
   }
 

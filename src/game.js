@@ -141,7 +141,8 @@ module.exports = function Game(players) {
 				}
 				self.killPlayer(playerName);
 				if(self.currentPlayerCount <= 1) {
-					self.endGame();
+					//Determine who the
+					self.endGame(self.determineWinner());
 					return false;
 				} else {
 					log.info("Game <" + self.name + "> will continue, " + self.currentPlayerCount + " players left.");
@@ -153,19 +154,40 @@ module.exports = function Game(players) {
 		return true;
 	};
 
+	//Returns the name of the remaining player, or null
+	self.determineWinner = function determineWinner() {
+		var pName, winnerName;
+		var playerCount = 0;
+		for(pName in self.playersList) {
+			player = self.playersList[pName];
+				//This player should be the winner
+				winnerName = pName;
+				playerCount += 1;
+		}
+		if(playerCount !== 1) {
+			//There is no current winner
+			log.warn("Tried to determine winner for game <" + self.name + "> but there are " + playerCount + " living players.");
+			return null;
+		} else {
+			return winnerName;
+		}
+	};
+
 	//Kills the player. Call when the player dies.
 	self.killPlayer = function killPlayer(playerName,optionalMessage) {
 		log.info("Player " + playerName + " died.");
 		var player = self.playersList[playerName];
 		var message = optionalMessage || constants.PLAYER_DIED;
-		//Let player know they died
-		// player.sendMessage(constants.PLAYER_DIED);
-		player.kill(message);
+
 		//Remove player from game
 		delete self.playersList[playerName];
 		self.currentPlayerCount -= 1;
 		player.state = constants.STATE_PENDING;
-    player.gameName = null;
+
+		//Let player know they died
+		player.kill(message);
+		player.gameName = null;//Break this AFTER kill() so they can notify
+
 	};
 
 	//Returns the player coordinates of the player
@@ -218,12 +240,31 @@ module.exports = function Game(players) {
 
 	//Called when a player leaves the game for any reason
 	self.notifyPlayerLeft = function notifyPlayerLeft(playerName) {
-		log.info("Game <" + self.name + "> had a player disconnect early! " + playerName);
 
 		//For now just end the game with no winner
 		//TODO- Dont end the game when this happens, people will quit when their bot dies
 		//TODO- The winner should be the other player who did not DC
-		self.endGame();
+
+
+		//Did we expect this? is the player inside the current player list?
+		//If so, we didn't expect it
+		if(self.playersList[playerName]) {
+			log.info("Game <" + self.name + "> had a player disconnect unexpectedly! " + playerName);
+			//This was unexpected. Something funky happened.
+			var winner = self.determineWinner();
+			//If only one player is left, the other one wins
+			if(winner) {
+				self.endGame(winner);
+			} else {
+				//if there are 2+ players left, nobody wins
+				self.endGame();
+			}
+		} else {
+			//This was expected, the player was kicked or died
+			//Everything is fine
+		}
+
+
 	};
 
 	//Called when a player makes a move
@@ -294,7 +335,7 @@ module.exports = function Game(players) {
 		self.printBoard();
 	};
 
-	self.endGame = function endGame() {
+	self.endGame = function endGame(winningPlayerName) {
 		//Cancel previous timeout if set
 		if(self.timeoutCancel) {
 			clearTimeout(self.timeoutCancel);
@@ -306,7 +347,7 @@ module.exports = function Game(players) {
 		}
 		self.ended = true;
 
-		manager.notifyGameOver(self.name);
+		manager.notifyGameOver(self.name,winningPlayerName);
 	};
 
 	self.turnTimeout = function turnTimeout() {
