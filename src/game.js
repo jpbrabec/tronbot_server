@@ -154,13 +154,13 @@ module.exports = function Game(players) {
 	};
 
 	//Kills the player. Call when the player dies.
-	self.killPlayer = function killPlayer(playerName) {
+	self.killPlayer = function killPlayer(playerName,optionalMessage) {
 		log.info("Player " + playerName + " died.");
 		var player = self.playersList[playerName];
-
+		var message = optionalMessage || constants.PLAYER_DIED;
 		//Let player know they died
 		// player.sendMessage(constants.PLAYER_DIED);
-		player.kill(constants.PLAYER_DIED);
+		player.kill(message);
 		//Remove player from game
 		delete self.playersList[playerName];
 		self.currentPlayerCount -= 1;
@@ -192,6 +192,11 @@ module.exports = function Game(players) {
 		if(self.timeoutCancel) {
 			clearTimeout(self.timeoutCancel);
 			self.timeoutCancel = null;
+		}
+
+		if(self.ended) {
+			log.info("Game <" + self.name + "> already ended. Aborting turn "+ self.turnCount);
+			return;
 		}
 
 		//Process pending moves
@@ -312,7 +317,21 @@ module.exports = function Game(players) {
 		log.info("Game <" + self.name + "> timeout TRIGGERED.");
 		//TODO- Handle timeout
 		//TODO- Also make sure all the clients are still alive, ending game otherwise.
-		log.error("FIXME- Handle game timeout");
+
+		//Have all players sent moves?
+		var ready = 0;
+		for(var pName in self.playersList) {
+			if(self.movesList[pName]) {
+				ready += 1;
+			} else {
+				//This player is late. Kill them.
+				log.info("Player " + pName + " took too long to respond and has been kicked.");
+				self.killPlayer(pName,constants.ERR_TIMEOUT);
+			}
+		}
+
+		//Run a turn. If any clients send a move after being killed, it will be dropped.
+		self.runTurn();
 	};
 
 	//Send message to each player with game info

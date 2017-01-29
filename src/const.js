@@ -13,6 +13,7 @@ module.exports = {
     ERR_AUTH_INVALID: "ERR_AUTH_INVALID", //Notify client that auth was invalid before kicking
     ERR_AUTH_REUSED: "ERR_KEY_REUSED", //Notify client that key was reused before kicking
     ERR_UNPROMPTED: "ERR_UNPROMPTED", //Notify client that they tried to make a move when they were not asked
+    ERR_TIMEOUT: "ERR_TIMEOUT", //Notify client that they took too long to respond and were killed
     ERR_MOVE_INVALID: "ERR_MOVE_INVALID", //Notify client that they tried to make an invalid move
     AUTH_OKAY: "AUTH_VALID", //Notify client that auth was accepted
     GAME_START: "GAME_START", //Notify player that game has started
