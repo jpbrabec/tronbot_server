@@ -5,7 +5,7 @@ var Admin = require('./admin.js');
 module.exports.init = function(app) {
 
   app.get('/',function(req,res){
-    res.send("Its alive!");
+    res.redirect('/public');
   });
 
   app.post('/admin',function(req,res){
