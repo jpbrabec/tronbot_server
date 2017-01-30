@@ -3,3 +3,106 @@
   color: transparent;
   background-color: black;
 }
+
+
+/* ------------------------ Sidebar ------------------------- */
+
+/* Hide for mobile, showlater */
+.sidebar {
+  display: none;
+}
+/* Sidebar tweaks for large-screen devices */
+@media (min-width: 768px) {
+  .sidebar {
+    padding: 0;
+    position: absolute;
+    top: 0px;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+    background-color: #ECF0F1;
+    box-shadow: inset 2px 0 10px #7F8C8D;
+  }
+}
+
+/* Sidebar navigation */
+.nav-header {
+  background-color: #345A6C;
+  margin: 0;
+  height: 60px;
+  padding: 18px 10px;
+  color: #ECF0F1;
+  font-size: 20px;
+  text-align: center;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+.nav-header span {
+  color: #F1C40F;
+  font-weight: 400;
+}
+.nav-sidebar {
+  padding: 10px;
+  box-sizing: border-box;
+}
+.nav-sidebar > li {
+  margin-bottom: 10px;
+}
+.nav-sidebar > li > a {
+  padding-right: 10px;
+  padding-left: 10px;
+  background-color: #fff;
+  border-radius: 4px;
+  color: #345A6C;
+  font-weight: 400;
+  transition: all 0.25s ease;
+  border: none;
+}
+.nav-sidebar > li > a:hover {
+  background-color: #BDC3C7;
+  color: white;
+}
+.nav-sidebar > .active > a,
+.nav-sidebar > .active > a:hover,
+.nav-sidebar > .active > a:focus {
+  color: #fff;
+  background-color: #BDC3C7;
+}
+
+
+/* ------------------------ Main Section ------------------------- */
+
+.boardWrapper {
+  text-align: center;
+  margin: 100px auto auto auto;
+  padding: 0px;
+}
+
+.boardWrapper table {
+  border: 0;
+  margin: 100px auto 0px auto;
+  background-color: #345A6C;
+  table-layout: fixed;
+  border-radius: 10px;
+}
+
+td {
+  width: 30px;
+  height: 30px;
+}
+
+.cell-empty {
+  background-image: url("./img/cell-empty.png");
+}
+
+
+.player-1, .wall-1 {
+  background-image: url("./img/bike_red.png");
+}
+
+.player-2, .wall-2 {
+  background-image: url("./img/bike_blue.png");
+}
