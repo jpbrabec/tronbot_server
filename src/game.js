@@ -89,13 +89,15 @@ module.exports = function Game(players) {
 			log.debug("NEW COORDS " + JSON.stringify(newCoords[playerName]));
 
 			//Is this player moving out of bounds?
-			if(newCoords.x < 0 ||
-				newCoords.x >= self.boardSize ||
-				newCoords.y < 0 ||
-				newCoords.y >= self.boardSize) {
+			if(newCoords[playerName].x < 0 ||
+				newCoords[playerName].x >= self.boardSize ||
+				newCoords[playerName].y < 0 ||
+				newCoords[playerName].y >= self.boardSize) {
+					console.log("PLAYER WENT OUT OF BOUNDS");
 					//Player has left the board and should die
 					stillAlive[playerName] = false;
 				} else {
+					console.log("Its okay, not out of bounds! Its only " + newCoords[playerName].x);
 					stillAlive[playerName] = true;
 				}
 		}
@@ -103,7 +105,14 @@ module.exports = function Game(players) {
 		//Check for collisions with walls
 		for(playerName in self.playersList) {
 			player = self.playersList[playerName];
+
+			//Is this player alive? They may have gone out of bounds.
+			if(!stillAlive[playerName]) {
+				continue; //They're already dead, skip this player
+			}
 			//Is the new location occupied already?
+			console.log("NEW COORDS X- " + newCoords[playerName].x);
+			console.log("NEW COORDS Y- " + newCoords[playerName].y);
 			var targetState = self.boardState[newCoords[playerName].x][newCoords[playerName].y];
 			if(targetState !== 0) {
 				//This player hit a wall OR an opponents position before moving
@@ -135,10 +144,18 @@ module.exports = function Game(players) {
 			if(!stillAlive[playerName]) {
 				log.warn("PLAYER <" + playerName + "> died!");
 
-				//Convert their bike location to a wall if needed
-				if(self.boardState[newCoords[playerName].x][newCoords[playerName].y] > 0) {
-					self.boardState[newCoords[playerName].x][newCoords[playerName].y] *= -1;
-				}
+				//Convert their bike location to a wall if needed IF the player died in-bounds
+				//Was this player in bounds?
+				if(!(newCoords[playerName].x < 0 ||
+					newCoords[playerName].x >= self.boardSize ||
+					newCoords[playerName].y < 0 ||
+					newCoords[playerName].y >= self.boardSize)) {
+						//Player was in bounds. Swap their position to a wall if not already.
+						if(self.boardState[newCoords[playerName].x][newCoords[playerName].y] > 0) {
+							self.boardState[newCoords[playerName].x][newCoords[playerName].y] *= -1;
+						}
+					}
+
 				self.killPlayer(playerName);
 				if(self.currentPlayerCount <= 1) {
 					//Determine who the
