@@ -93,11 +93,9 @@ module.exports = function Game(players) {
 				newCoords[playerName].x >= self.boardSize ||
 				newCoords[playerName].y < 0 ||
 				newCoords[playerName].y >= self.boardSize) {
-					console.log("PLAYER WENT OUT OF BOUNDS");
 					//Player has left the board and should die
 					stillAlive[playerName] = false;
 				} else {
-					console.log("Its okay, not out of bounds! Its only " + newCoords[playerName].x);
 					stillAlive[playerName] = true;
 				}
 		}
@@ -111,10 +109,9 @@ module.exports = function Game(players) {
 				continue; //They're already dead, skip this player
 			}
 			//Is the new location occupied already?
-			console.log("NEW COORDS X- " + newCoords[playerName].x);
-			console.log("NEW COORDS Y- " + newCoords[playerName].y);
 			var targetState = self.boardState[newCoords[playerName].x][newCoords[playerName].y];
 			if(targetState !== 0) {
+				log.info("COLLISION with wall for <"+ playerName + "> in game <"+self.name+">");
 				//This player hit a wall OR an opponents position before moving
 				stillAlive[playerName] = false;
 			}
@@ -129,10 +126,16 @@ module.exports = function Game(players) {
 
 				//Is this next square occupied? If so, you both die.
 				var updatedState = self.boardState[newCoords[playerName].x][newCoords[playerName].y];
-				if(updatedState !== 0) {
+				if(updatedState > 0) {
 					//This player and targetState player both die
 					stillAlive[playerName] = false;
-					stillAlive[updatedState*(-1)] = false;
+					//Get the player name assosciated with the cell you collided with
+					var otherPlayer = self.getPlayerNameFromNumber(updatedState);
+					log.info("COLLISION between bikes for <"+ playerName + "> and <"+otherPlayer+"> in game <"+self.name+">");
+					if(otherPlayer) {
+						//Kill this player too
+						stillAlive[otherPlayer] = false;
+					}
 				}
 				self.boardState[newCoords[playerName].x][newCoords[playerName].y] = self.playerNumbers[playerName]; //TODO- This wont work you need a mapping
 			}
@@ -155,17 +158,20 @@ module.exports = function Game(players) {
 							self.boardState[newCoords[playerName].x][newCoords[playerName].y] *= -1;
 						}
 					}
-
 				self.killPlayer(playerName);
-				if(self.currentPlayerCount <= 1) {
-					//Determine who the
-					self.endGame(self.determineWinner());
-					return false;
-				} else {
-					log.info("Game <" + self.name + "> will continue, " + self.currentPlayerCount + " players left.");
-				}
 			}
 		}
+
+		//Is there only 1 or 0 players left?
+		if(self.currentPlayerCount <= 1) {
+			//Determine who the
+			log.warn("Game <"+self.name + "> ended!");
+			self.endGame(self.determineWinner());
+			return false;
+		} else {
+			log.info("Game <" + self.name + "> will continue, " + self.currentPlayerCount + " players left.");
+		}
+
 		log.info("FINISHED CRUNCHING MOVES FOR TURN #"+self.turnCount);
 		viewerManager.notifyViewers(self.name);
 		return true;
@@ -188,6 +194,19 @@ module.exports = function Game(players) {
 		} else {
 			return winnerName;
 		}
+	};
+
+	//Get player name from number
+	self.getPlayerNameFromNumber = function getPlayerNameFromNumber(pNum) {
+		var pName;
+		for(pName in self.playersList) {
+				//Is the player we're looking for?
+				if(pNum === self.playerNumbers[pName]) {
+					return pName;
+				}
+		}
+		log.warn("Unable to get player name from number " + pNum + " for game <" + self.name + ">");
+		return null;
 	};
 
 	//Kills the player. Call when the player dies.
@@ -339,7 +358,7 @@ module.exports = function Game(players) {
 		}
 		switch(self.currentPlayerCount) {
 			case 2:
-				var mid = self.boardSize/2;
+				var mid = Math.floor(self.boardSize/2);
 				arr[0][mid] = 1;
 				arr[self.boardSize-1][mid] = 2;
 				break;
