@@ -19,9 +19,15 @@ function seedDatabase() {
   var accountA = new Account({name: "TestA", key: "PassA"});
   var accountB = new Account({name: "TestB", key: "PassB"});
   var accountC = new Account({name: "TestC", key: "PassC"});
+  var accountD = new Account({name: "TestD", key: "PassD"});
+  var accountE = new Account({name: "TestE", key: "PassE"});
+  var accountF = new Account({name: "TestF", key: "PassF"});
   accountA.save();
   accountB.save();
   accountC.save();
+  accountD.save();
+  accountE.save();
+  accountF.save();
 }
 
 function finishSeeding() {

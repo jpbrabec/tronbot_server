@@ -129,6 +129,28 @@ module.exports = function Client(socket) {
 		}
 	};
 
+	//Update the win/loss tally in database
+	self.updateScore = function updateScore(win) {
+		Account.findOne({key: self.authenticated})
+		.then((userAccount) => {
+			if(win) {
+				userAccount.wins += 1;
+			} else {
+				userAccount.losses += 1;
+			}
+			//Save changes
+			userAccount.save()
+			.then((updatedAccount) => {
+
+			}).catch((error) => {
+				log.warn("Database error when updating model with auth key <"+self.authenticated+">");
+				log.warn(e.stack);			})
+		}).catch((e) => {
+			log.warn("Database error with auth key <"+self.authenticated+">");
+			log.warn(e.stack);
+		});
+	};
+
 	//Handle client move
 	self.handleMove = function handleMove(clientWords) {
 		log.info("Client <" + self.name + "> sent a move");

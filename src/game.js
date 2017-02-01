@@ -215,6 +215,9 @@ module.exports = function Game(players) {
 		var player = self.playersList[playerName];
 		var message = optionalMessage || constants.PLAYER_DIED;
 
+		//Add a loss to the player's tally
+		self.playersList[playerName].updateScore(false);
+		
 		//Remove player from game
 		delete self.playersList[playerName];
 		self.currentPlayerCount -= 1;

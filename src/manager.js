@@ -61,11 +61,7 @@ module.exports.tickHandler = function tickHandler() {
 */
 module.exports.notifyGameOver = function notifyGameOver(gameName,winningPlayerName) {
 
-  //TODO- Update scores in database
-
   var gameList = require('./sockets.js').gameList;
-
-  //TODO- run matchmaking periodically or run it after kicking players. Right now players can die and wont be rematched.
 
   //Update state for each player
   var gameIndex = _.findIndex(gameList,{name: gameName});
@@ -76,9 +72,12 @@ module.exports.notifyGameOver = function notifyGameOver(gameName,winningPlayerNa
       player.state = constants.STATE_PENDING;
       player.gameName = null;
       if(!!winningPlayerName && playerName === winningPlayerName) {
-        //TODO- Count this total up in the database
+        //Add a win to the player's tally
+        player.updateScore(true);
         player.kill(constants.PLAYER_WIN);
       } else {
+        //Add a loss to the player's tally
+        player.updateScore(false);
         player.kill(constants.PLAYER_DIED);
       }
     }

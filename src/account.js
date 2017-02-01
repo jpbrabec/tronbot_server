@@ -13,9 +13,28 @@ var accountSchema = new mongoose.Schema({
     key: {
         type: String,
         required: true
+    },
+    wins: {
+        type: Number,
+        required: true,
+        default: 0,
+    },
+    losses: {
+        type: Number,
+        required: true,
+        default: 0,
     }
 },{
     timestamps: true
 });
+
+//Compute win loss ratio
+accountSchema.methods.computeWinRate = function(cb) {
+  if(this.wins === 0 || this.losses === 0) {
+    return 0;
+  } else {
+    return this.wins / (this.losses + this.wins);
+  }
+};
 
 module.exports = mongoose.model('Account', accountSchema);

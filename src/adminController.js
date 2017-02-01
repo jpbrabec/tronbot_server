@@ -57,12 +57,36 @@ module.exports.init = function(app) {
     });
   });
 
+
+  //Send back leaderboard data
+  app.get('/admin/leaderboard',function(req,res) {
+    Account.find({})
+    .then((accounts) => {
+      var resData = [];
+      for(var i=0; i<accounts.length; i++) {
+        resData.push({
+          name: accounts[i].name,
+          wins: accounts[i].wins,
+          losses: accounts[i].losses,
+          rate: accounts[i].computeWinRate()
+        });
+      }
+      resData.sort(function(a,b){
+        return b.rate - a.rate;
+      });
+      res.send(resData);
+    }).catch((err) => {
+      log.warn("Database error! " + err);
+      log.warn(err.stack);
+    });
+  });
+
   //Start Server
   app.listen(process.env.PORT_ADMIN,function(){
     log.info("Admin Server running on " + process.env.PORT_ADMIN);
   });
 
-}
+};
 
 //Set the adminAuth varaible if user authenticates as admin
 module.exports.authMiddleware = function authMiddleware(req,res,next) {
@@ -85,7 +109,7 @@ module.exports.authMiddleware = function authMiddleware(req,res,next) {
       return next();
     });
   }
-}
+};
 
 //Generate unique token
 module.exports.generateAuthToken = function generateAuthToken() {
