@@ -30,10 +30,11 @@ var accountSchema = new mongoose.Schema({
 
 //Compute win loss ratio
 accountSchema.methods.computeWinRate = function(cb) {
-  if(this.wins === 0 || this.losses === 0) {
+  var total = this.wins + this.losses;
+  if(total === 0) {
     return 0;
   } else {
-    return this.wins / (this.losses + this.wins);
+    return this.wins / total;
   }
 };
 
