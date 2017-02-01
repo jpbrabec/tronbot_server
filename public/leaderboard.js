@@ -2,6 +2,7 @@ var rootURL = "http://localhost:8082";
 
 
 $(function(){
+  fetchData();
   setInterval(fetchData,2000);
 });
 
