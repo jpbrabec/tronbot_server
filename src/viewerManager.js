@@ -72,7 +72,7 @@ module.exports.notifyViewers = function notifyViewers(gameName) {
 
 module.exports.viewersList = viewersList;
 
-//COMMAND NumOfGames Game1, Game2, Game3, Game4
+//COMMAND NumOfGames Game1,Game1Name,Game2,Game2Name,Game3,Game3Name
 function buildGameListMessage() {
   var gameList = require('./sockets.js').gameList;
   var message = constants.SCOMMAND_GAMELIST + " ";
@@ -83,10 +83,28 @@ function buildGameListMessage() {
   }
   for(var i=0; i < gameList.length; i++) {
     if(i == gameList.length-1) {
-      message += "" + gameList[i].name + "";
+      message += "" + gameList[i].name + ",";
+      message += "" + getFriendlyGameName(gameList[i]) + "";
     } else {
-      message += "" + gameList[i].name + ", ";
+      message += "" + gameList[i].name + ",";
+      message += "" + getFriendlyGameName(gameList[i]) + ",";
     }
   }
   return message;
+}
+
+function getFriendlyGameName(game) {
+  var gameName = "";
+  var i = 0;
+  for(var pName in game.playersList) {
+    if(i === 0) {
+      gameName += game.playersList[pName].friendlyName;
+    } else if (i == 1) {
+      gameName += "_VS_" + game.playersList[pName].friendlyName;
+      break;
+    }
+    i++;
+  }
+  return gameName;
+
 }

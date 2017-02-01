@@ -12,6 +12,7 @@ module.exports = function Client(socket) {
 	var self = this;
 	self.socket = socket;
 	self.name = manager.generateID();
+	self.friendlyName = "NoName";
 	self.state = constants.STATE_NO_AUTH;
 	self.authenticated = null;
 	self.cycleRequests = 0;
@@ -69,6 +70,7 @@ module.exports = function Client(socket) {
 		self.state = constants.STATE_PENDING;
 		log.info("Client <" + self.name + "> authed as <" + account.name + ">");
 		self.name = account.name + "_" + self.name;
+		self.friendlyName = account.name; //Non-Unique Human-friendly name
 		manager.runMatchmaking(); //See if any clients are ready to play with
 	};
 

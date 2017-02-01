@@ -51,13 +51,11 @@ function buildHtmlFromState(boardSize,cellData) {
     }
   }
   out += "</table>";
-  console.log(out);
   return out;
 }
 
 function getClassFromCellData(cellData) {
   var className = "";
-  console.log("data is " + cellData);
   switch(cellData) {
     case "1":
       className = "player-1";
@@ -82,13 +80,22 @@ function getClassFromCellData(cellData) {
 }
 
 function updateBoardList(words) {
-  console.log("Updating board list");
+  console.log("Updating board list "+words);
   $("#gameList").html("");
 
   var count = parseInt(words[1]);
   var out = "";
-  for(var i=0; i<count; i++) {
-    out += "<li onclick='trackGame(\"" + words[i+2] + "\")'><a href='#'>" +words[i+2] + "</a></li>";
+  var gameNames;
+  if(count == 0) {
+    out += "<li><a href='#'> No Games</a></li>";
+    $("#gameList").html(out);
+    return;
+  } else {
+    gameNames = words[2].split(",");
+  }
+  for(var i=0; i<count; i+=2) {
+    var friendlyName = gameNames[i+1].split("_").join(" ");
+    out += "<li onclick='trackGame(\"" + gameNames[i] + "\")'><a href='#'>" + friendlyName + "</a></li>";
   }
   $("#gameList").html(out);
 
