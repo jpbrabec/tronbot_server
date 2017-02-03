@@ -20,15 +20,7 @@ function renderTable(users) {
   $table.append("<tbody>");
 
   for(var i=0; i < users.length; i++) {
-    $table.append("<tr><td>" + users[i].name + "</td><td>" + users[i].wins + "</td><td>" + users[i].losses + "</td><td>" + users[i].rate + "</td></tr>");
+    $table.append("<tr><td>" + users[i].name + "</td><td>" + users[i].wins + "</td><td>" + users[i].losses + "</td><td>" + users[i].rate.toFixed(2) + "</td></tr>");
   }
   $table.append("</tbody>");
-
-
-  $(".private").mouseenter(function(){
-    $(this).removeClass("shaded");
-  })
-  $(".private").mouseleave(function(){
-    $(this).addClass("shaded");
-  })
 }
