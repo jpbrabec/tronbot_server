@@ -12,7 +12,8 @@ var accountSchema = new mongoose.Schema({
         },
     key: {
         type: String,
-        required: true
+        required: true,
+        minlength: 1
     },
     wins: {
         type: Number,
