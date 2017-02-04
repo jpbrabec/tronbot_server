@@ -3,9 +3,26 @@ var rootURL = "http://localhost:8082";
 $(function(){
   $form = $("#create-form");
   $form.on('submit',createTeam);
-
+  $("#reset-button").on('click',resetLeaderboard);
   checkAuth();
 });
+
+function resetLeaderboard() {
+  //Was confirm checked?
+  $confirm = $("#confirm-reset-checkbox");
+  if(!$confirm[0].checked) {
+    alert("Check the confirmation box before resetting leaderboard.");
+  } else {
+    var token = Cookies.get('tronToken');
+    //Send the request to the server
+    $.post( rootURL+"/admin/resetScores", { token: token})
+    .done(function( data ) {
+      alert("Leaderboard Reset");
+    }).catch(function(e){
+      alert("Error! " + e);
+    });
+  }
+}
 
 function checkAuth() {
   var token = Cookies.get('tronToken');
@@ -50,10 +67,10 @@ function renderTable(users) {
 
   $(".private").mouseenter(function(){
     $(this).removeClass("shaded");
-  })
+  });
   $(".private").mouseleave(function(){
     $(this).addClass("shaded");
-  })
+  });
 }
 
 
@@ -68,6 +85,6 @@ function createTeam(e) {
     fetchAccounts(); //Update list
   }).catch(function(e){
     alert("Invalid TeamName");
-  })
+  });
   return false;
 }

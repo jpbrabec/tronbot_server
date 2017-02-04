@@ -57,6 +57,36 @@ module.exports.init = function(app) {
     });
   });
 
+  //Reset leaderboard scores
+  app.post('/admin/resetScores',function(req,res) {
+    //Validate token
+    if(!req.adminAuth) {
+      return res.status(403).json({message: "Auth Invalid"});
+    }
+
+    //Reset scores
+    Account.find()
+    .then(function(data){
+      var promises = [];
+      for(var i=0; i<data.length; i++) {
+        data[i].wins = 0;
+        data[i].losses = 0;
+        promises.push(data[i].save());
+      }
+
+      //Return status after finishing operation
+      Promise.all(promises).then(() => {
+        return res.json({message: "success"});
+      }).catch(e => {
+        log.error("ERROR! " + e + "\n " + e.stack);
+        return res.json({message: "error"});
+      });
+    })
+    .catch(function(e){
+      log.error("ERROR! " + e + "\n " + e.stack);
+      return res.status(500).json({message: "Unknown error. Check logs."});
+    });
+  });
 
   //Send back leaderboard data
   app.get('/admin/leaderboard',function(req,res) {

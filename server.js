@@ -32,17 +32,17 @@ server.listen(port, () => {
 
 //HTTP Server for viewer
 var portViewer = process.env.PORT_VIEWER || 8081;
-var server = http.createServer(function(req,res) {
+var viewerServer = http.createServer(function(req,res) {
   console.log("Got req for "+req.url);
   res.writeHead(404);
   res.end();
 });
-server.listen(portViewer, () => {
+viewerServer.listen(portViewer, () => {
     log.info("Viewer Server listening on port " + portViewer);
 });
 //Upgrade to WebSocket protocol
 wsServer = new WebSocketServer({
-  httpServer: server,
+  httpServer: viewerServer,
   autoAcceptConnections: false
 });
 wsServer.on('request',viewerManager.handler);
