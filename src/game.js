@@ -45,6 +45,7 @@ module.exports = function Game(players) {
 		for(var playerName in self.playersList) {
 			var player = self.playersList[playerName];
 			player.state = constants.STATE_REQMOVES;
+			player.cycleRequests = 0; //Reset ratelimit value
 			self.movesList[player.name] = null; //Clear player move
 			player.sendMessage(constants.SCOMMAND_REQUEST_MOVE + " " + self.stringifyBoardState());
 		}
@@ -217,7 +218,7 @@ module.exports = function Game(players) {
 
 		//Add a loss to the player's tally
 		self.playersList[playerName].updateScore(false);
-		
+
 		//Remove player from game
 		delete self.playersList[playerName];
 		self.currentPlayerCount -= 1;
