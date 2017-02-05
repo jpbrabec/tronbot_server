@@ -106,3 +106,49 @@ td {
 .player-2, .wall-2 {
   background-image: url("./img/bike_blue.png");
 }
+
+
+
+/* ------------------------ Title Page ------------------------- */
+
+.titleSection {
+  margin-top: 200px;
+  font-family: 'Lato', sans-serif;
+  text-align: center;
+}
+
+.titleBold {
+  font-size: 92px;
+  text-transform: uppercase;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #345A6C;
+  margin-bottom: 20px;
+}
+
+.subtitle {
+  color: #BEBEBE;
+  font-size: 24px;
+  margin-bottom: -32px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.titlePageLink {
+	font-size: 18px;
+	color: #333333;
+	text-decoration: none;
+	font-weight: 400;
+	background-color: #BEBEBE;
+	padding: 10px 14px;
+	border-radius: 4px;
+	color: white;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+	transition: all 0.1s ease;
+}
+.titlePageLink:hover {
+  text-decoration: none;
+  color: white;
+  background-color: #345A6C;
+}
