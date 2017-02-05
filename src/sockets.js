@@ -17,7 +17,7 @@ module.exports.socketHandler = function (socket) {
 
 		//Is message longer than allowed
 		if(endIndex > process.env.LENGTH_LIMIT) {
-			log.warn("Client <" + self.name + "> passed rate limit.");
+			log.warn("Client <" + client.name + "> passed rate limit.");
 			client.kill(constants.ERR_LENGTHLIMIT);
 			return;
 		}
