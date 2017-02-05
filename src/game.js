@@ -330,9 +330,16 @@ module.exports = function Game(players) {
 		if(ready < self.currentPlayerCount) {
 			log.info("Game <" + self.name + "> still waiting on moves. Have " + ready + "/" + self.currentPlayerCount);
 		} else {
-			//We can start the next turn immediately
-			log.info("Game <" + self.name + "> now has " + ready + "/" + self.currentPlayerCount + " moves. Running turn.");
-			self.runTurn();
+			//We can start the next turn as soon as we want
+			log.info("Game <" + self.name + "> now has " + ready + "/" + self.currentPlayerCount + " moves.");
+
+			//Reset the timeout with a short delay so the game doesn't go too fast
+			if(self.timeoutCancel) {
+				clearTimeout(self.timeoutCancel);
+				self.timeoutCancel = null;
+			}
+			self.timeoutCancel = setTimeout(self.turnTimeout,process.env.DEFAULT_DELAY || 500);
+			// self.runTurn();
 		}
 	};
 
