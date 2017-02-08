@@ -177,11 +177,21 @@ module.exports = function Client(socket) {
 	//Handle auth attempt.
 	self.handleAuth = function handleAuth(clientWords) {
 
+		//Has this client already authenticated?
+		if(self.authenticated) {
+			log.info("Client <"+self.name+" tried to re-authenticate themselves. Ignoring.");
+			return;
+		}
 
 		Account.findOne({
 			key: clientWords[1]
 		}).then((result) => {
 			if(result) {
+				//Has this client already authenticated?
+				if(self.authenticated) {
+					log.info("Client <"+self.name+" tried to re-authenticate themselves. Ignoring.");
+					return;
+				}
 				//Auth key is legit, but has it been used already?
 				var clientList = require('./sockets.js').clientList;
 				var dupIndex = _.findIndex(clientList,{authenticated: clientWords[1]});
