@@ -144,7 +144,7 @@ module.exports = function Client(socket) {
 
 			}).catch((error) => {
 				log.warn("Database error when updating model with auth key <"+self.authenticated+">");
-				log.warn(e.stack);			})
+				log.warn(e.stack);			});
 		}).catch((e) => {
 			log.warn("Database error with auth key <"+self.authenticated+">");
 			log.warn(e.stack);
@@ -176,22 +176,19 @@ module.exports = function Client(socket) {
 
 	//Handle auth attempt.
 	self.handleAuth = function handleAuth(clientWords) {
-		//Is this key in use already?
-		var clientList = require('./sockets.js').clientList;
-		var dupIndex = _.findIndex(clientList,{authenticated: clientWords[1]});
 
-		//Was this key already in use?
-		if(dupIndex >= 0) {
-			log.warn("Key re-used. Kicking client <" + clientList[dupIndex].name + ">");
-			clientList[dupIndex].sendMessage(constants.ERR_AUTH_REUSED);
-			clientList[dupIndex].kill();
-		}
 
 		Account.findOne({
 			key: clientWords[1]
 		}).then((result) => {
 			if(result) {
-				//Auth is accepted
+				//Auth key is legit, but has it been used already?
+				var clientList = require('./sockets.js').clientList;
+				var dupIndex = _.findIndex(clientList,{authenticated: clientWords[1]});
+				if(dupIndex >= 0) {
+					log.warn("Key re-used. Kicking client <" + clientList[dupIndex].name + ">");
+					clientList[dupIndex].kill(constants.ERR_AUTH_REUSED);
+				}
 				self.sendMessage(constants.AUTH_OKAY);
 				self.authenticate(result,clientWords[1]);
 				return;
