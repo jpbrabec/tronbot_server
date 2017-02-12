@@ -1,4 +1,6 @@
 var webSocket = null;
+var trackedGameName = null;
+
 
 $(function(){
   console.log('hey');
@@ -9,7 +11,7 @@ $(function(){
   			console.log("I'm Connected");
 	};
   webSocket.onmessage = function(event) {
-    console.log("GOT: "+JSON.stringify(event.data));
+    // console.log("GOT: "+JSON.stringify(event.data));
     var words = event.data.substring(0,event.data.length-1).split(" ");
     switch(words[0]) {
       case "GAME_LIST":
@@ -86,22 +88,51 @@ function updateBoardList(words) {
   var count = parseInt(words[1]);
   var out = "";
   var gameNames;
-  if(count == 0) {
+  var oldGameExists = false;
+  if(count === 0) {
     out += "<li><a href='#'> No Games</a></li>";
     $("#gameList").html(out);
+    stopTracking();
     return;
   } else {
     gameNames = words[2].split(",");
   }
   for(var i=0; i<count; i+=2) {
-    var friendlyName = gameNames[i+1].split("_").join(" ");
-    out += "<li onclick='trackGame(\"" + gameNames[i] + "\")'><a href='#'>" + friendlyName + "</a></li>";
+    let friendlyName = gameNames[i+1].split("_").join(" ");
+    out += "<li onclick='trackGame(\"" + gameNames[i] + "\",\"" + friendlyName +"\")'><a href='#'>" + friendlyName + "</a></li>";
+    //Does the old game still exist?
+    if(trackedGameName === gameNames[i]) {
+      console.log("Match between " + trackedGameName + " and " + gameNames[i]);
+      oldGameExists = true;
+    }
   }
   $("#gameList").html(out);
 
+  //Were you tracking but the game ended?
+  if(trackedGameName && !oldGameExists) {
+    console.log("Stopped Tracking!");
+    stopTracking();
+  }
+  //Track first item automatically if nothing else is set
+  if(!trackedGameName && count >= 1) {
+    let friendlyName = gameNames[1].split("_").join(" ");
+    trackGame(gameNames[0],friendlyName);
+  } else {
+  }
+
 }
-function trackGame(gameName) {
+
+function stopTracking() {
+  trackedGameName = null;
+  $(".gameName").text("-No Active Game-");
+}
+
+function trackGame(gameName,displayName) {
   console.log("Tracking " + gameName);
+  trackedGameName = gameName;
+  if(displayName) {
+    $(".gameName").text(displayName);
+  }
   if(webSocket) {
     webSocket.send("SUBSCRIBE " + gameName + ";");
   }
