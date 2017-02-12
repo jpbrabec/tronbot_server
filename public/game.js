@@ -3,7 +3,7 @@ var trackedGameName = null;
 
 
 $(function(){
-  console.log('hey');
+  console.log('Starting Up');
   var GAME_SERVER = "ws://localhost:8081";
   webSocket = new WebSocket(GAME_SERVER,"tron-protocol");
 
@@ -82,10 +82,11 @@ function getClassFromCellData(cellData) {
 }
 
 function updateBoardList(words) {
-  console.log("Updating board list "+words);
+  console.log("Updating board list: "+words);
   $("#gameList").html("");
 
   var count = parseInt(words[1]);
+  console.log("COUNT IS " + count);
   var out = "";
   var gameNames;
   var oldGameExists = false;
@@ -97,7 +98,7 @@ function updateBoardList(words) {
   } else {
     gameNames = words[2].split(",");
   }
-  for(var i=0; i<count; i+=2) {
+  for(var i=0; i<count*2; i+=2) {
     let friendlyName = gameNames[i+1].split("_").join(" ");
     out += "<li onclick='trackGame(\"" + gameNames[i] + "\",\"" + friendlyName +"\")'><a href='#'>" + friendlyName + "</a></li>";
     //Does the old game still exist?
