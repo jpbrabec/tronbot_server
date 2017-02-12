@@ -84,7 +84,12 @@ function createTeam(e) {
     $nameBox.val(""); //Clear team name
     fetchAccounts(); //Update list
   }).catch(function(e){
-    alert("Invalid TeamName");
+    var outputMessage = "";
+    //Parse all error messages
+    for(var problem in e.responseJSON.errors) {
+      outputMessage += e.responseJSON.errors[problem].message;
+    }
+    alert("Invalid TeamName\n\n" +outputMessage);
   });
   return false;
 }
