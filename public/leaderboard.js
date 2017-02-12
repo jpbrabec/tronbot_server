@@ -1,4 +1,4 @@
-var rootURL = "http://localhost:8082";
+var rootURL = "http://tron.purduehackers.com";
 
 
 $(function(){
