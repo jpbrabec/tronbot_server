@@ -4,7 +4,7 @@ var trackedGameName = null;
 
 $(function(){
   console.log('Starting Up');
-  var GAME_SERVER = "ws://localhost:8081";
+  var GAME_SERVER = "ws://138.197.70.86:8081";
   webSocket = new WebSocket(GAME_SERVER,"tron-protocol");
 
   webSocket.onopen = function() {
