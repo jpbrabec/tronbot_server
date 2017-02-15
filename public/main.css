@@ -99,14 +99,20 @@ td {
 }
 
 
-.player-1, .wall-1 {
-  background-image: url("./img/bike_red.png");
+.player-1 {
+  background-image: url("./img/bike_orange.png");
 }
 
-.player-2, .wall-2 {
+.wall-1 {
+  background-image: url("./img/bike_darkorange.png");
+}
+
+.player-2 {
   background-image: url("./img/bike_blue.png");
 }
-
+.wall-2 {
+  background-image: url("./img/bike_darkblue.png");
+}
 .gameName {
   font-family: 'Lato', sans-serif;
   font-weight: bold;
