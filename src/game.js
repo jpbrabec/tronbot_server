@@ -291,7 +291,19 @@ module.exports = function Game(players) {
 		if(self.playersList[playerName]) {
 			log.info("Game <" + self.name + "> had a player disconnect unexpectedly! " + playerName);
 			//This was unexpected. Something funky happened.
-			var winner = self.determineWinner();
+			// var winner = self.determineWinner();
+
+			//Find the name of the player who didnt die
+			var pName, winner;
+			for(pName in self.playersList) {
+				player = self.playersList[pName];
+					if(pName !== playerName) {
+						//This person did NOT disconnect
+						winner = pName;
+					}
+			}
+			log.info("Becase <" + playerName + "> disconnected unexpectedly this guy won: " + winner);
+
 			//If only one player is left, the other one wins
 			if(winner) {
 				self.endGame(winner);
